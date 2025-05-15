@@ -48,10 +48,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 //    #[ORM\Column(type: 'string', length: 50, enumType: UserRole::class)]
 //    private ?UserRole $role;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: UserRole::class)]
+    #[ORM\Column(type: 'string', length: 50)]
     private ?string $role;
 
-    #[ORM\Column(type: 'string', length: 20, enumType: Status::class)]
+    #[ORM\Column(type: 'string', length: 20)]
     private ?string $status;
 
     #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
@@ -215,7 +215,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        return [$this->role ?? UserRole::Member];
+        return ['ROLE_' . ($this->role ?? UserRole::Member->value)];
     }
 
     public function eraseCredentials(): void

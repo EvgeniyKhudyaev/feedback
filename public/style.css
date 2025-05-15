@@ -1,0 +1,27 @@
+body {
+    background-color: #f8f9fa;
+    color: #212529;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.navbar-nav .nav-item.active .nav-link {
+    color: #fff;
+}
+
+
+.registration-form-container {
+    max-width: 500px;
+    margin: 0 auto; /* центрирование */
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+}
+
+.registration-form-container h1 {
+    text-align: center;
+}
