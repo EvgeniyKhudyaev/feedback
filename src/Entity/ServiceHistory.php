@@ -24,7 +24,7 @@ class ServiceHistory
 
     #[ORM\ManyToOne(inversedBy: 'serviceHistories')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $creator = null;
+    private ?ClientUser $creator = null;
 
     #[ORM\ManyToOne(inversedBy: 'serviceHistories')]
     #[ORM\JoinColumn(nullable: false)]
@@ -34,7 +34,7 @@ class ServiceHistory
     private ?string $note = null;
 
     #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: Status::class)]
-    private ?string $status;
+    private ?Status $status;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $createdAt = null;
@@ -71,12 +71,12 @@ class ServiceHistory
         return $this;
     }
 
-    public function getCreator(): ?User
+    public function getCreator(): ?ClientUser
     {
         return $this->creator;
     }
 
-    public function setCreator(?User $creator): static
+    public function setCreator(ClientUser $creator): static
     {
         $this->creator = $creator;
 
@@ -88,7 +88,7 @@ class ServiceHistory
         return $this->state;
     }
 
-    public function setState(?ServiceState $state): static
+    public function setState(ServiceState $state): static
     {
         $this->state = $state;
 
@@ -107,12 +107,12 @@ class ServiceHistory
         return $this;
     }
 
-    public function getStatus(): string
+    public function getStatus(): Status
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(Status $status): static
     {
         $this->status = $status;
 

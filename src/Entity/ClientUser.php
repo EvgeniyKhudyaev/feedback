@@ -4,10 +4,13 @@ namespace App\Entity;
 
 use App\Enum\Status;
 use App\Repository\ClientUserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ClientUserRepository::class)]
+#[ORM\Table(name: '`client_user`')]
 class ClientUser
 {
     #[ORM\Id]
@@ -31,13 +34,24 @@ class ClientUser
     private ?string $telegram = null;
 
     #[ORM\Column(type: 'string', length: 20, enumType: Status::class)]
-    private ?string $status = null;
+    private ?Status $status = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $createdAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $updatedAt = null;
+
+    /**
+     * @var Collection<int, ServiceHistory>
+     */
+    #[ORM\OneToMany(targetEntity: ServiceHistory::class, mappedBy: 'creator', orphanRemoval: true)]
+    private Collection $serviceHistories;
+
+    public function __construct()
+    {
+        $this->serviceHistories = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -104,12 +118,12 @@ class ClientUser
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): ?Status
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(Status $status): static
     {
         $this->status = $status;
 
@@ -136,6 +150,31 @@ class ClientUser
     public function setUpdatedAt(\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ServiceHistory>
+     */
+    public function getServiceHistories(): Collection
+    {
+        return $this->serviceHistories;
+    }
+
+    public function addServiceHistory(ServiceHistory $serviceHistory): static
+    {
+        if (!$this->serviceHistories->contains($serviceHistory)) {
+            $this->serviceHistories->add($serviceHistory);
+            $serviceHistory->setCreator($this);
+        }
+
+        return $this;
+    }
+
+    public function removeServiceHistory(ServiceHistory $serviceHistory): static
+    {
+        $this->serviceHistories->removeElement($serviceHistory);
 
         return $this;
     }

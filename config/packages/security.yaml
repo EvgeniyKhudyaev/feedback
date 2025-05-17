@@ -8,10 +8,22 @@ security:
             entity:
                 class: App\Entity\User
                 property: email
+
+#        api_users:
+#            entity:
+#                class: App\Entity\User
+#                property: name
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+
+        api:
+            pattern: ^/api/
+            stateless: true
+            http_basic: ~
+            provider: database_users
 
         main:
             lazy: true

@@ -33,9 +33,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 255, unique: true, nullable: false)]
     private ?string $email = null;
 
-    #[ORM\Column(type: 'string', length: 512, nullable: true)]
-    private ?string $avatar = null;
-
+    #[ORM\ManyToOne(targetEntity: File::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
+    private ?File $avatar = null;
     #[ORM\Column(type: 'string', length: 20, nullable: true)]
     private ?string $phone = null;
 
@@ -52,7 +52,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $role;
 
     #[ORM\Column(type: 'string', length: 20)]
-    private ?string $status;
+    private ?Status $status;
 
     #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     private bool $isVerified = false;
@@ -64,16 +64,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $updatedAt = null;
 
     /**
-     * @var Collection<int, ServiceHistory>
+     * @var Collection<int, File>
      */
-    #[ORM\OneToMany(targetEntity: ServiceHistory::class, mappedBy: 'creator')]
-    private Collection $serviceHistories;
+    #[ORM\OneToMany(targetEntity: File::class, mappedBy: 'owner')]
+    private Collection $files;
 
     public function __construct()
     {
         $this->uuid = Guid::uuid4()->toString();
-        $this->serviceHistories = new ArrayCollection();
-        $this->status = Status::Active->value;
+        $this->status = Status::Active;
+        $this->files = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -117,12 +117,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getAvatar(): ?string
+    public function getAvatar(): ?File
     {
         return $this->avatar;
     }
 
-    public function setAvatar(?string $avatar): self
+    public function setAvatar(File $avatar): self
     {
         $this->avatar = $avatar;
 
@@ -134,7 +134,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->phone;
     }
 
-    public function setPhone(?string $phone): static
+    public function setPhone(string $phone): static
     {
         $this->phone = $phone;
 
@@ -146,7 +146,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->telegram;
     }
 
-    public function setTelegram(?string $telegram): static
+    public function setTelegram(string $telegram): static
     {
         $this->telegram = $telegram;
 
@@ -177,12 +177,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): ?Status
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(Status $status): static
     {
         $this->status = $status;
 
@@ -215,7 +215,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        return ['ROLE_' . ($this->role ?? UserRole::Member->value)];
+        return [$this->role ?? UserRole::Member->value];
     }
 
     public function eraseCredentials(): void
@@ -227,36 +227,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email ?? $this->uuid;
     }
 
-    /**
-     * @return Collection<int, ServiceHistory>
-     */
-    public function getServiceHistories(): Collection
-    {
-        return $this->serviceHistories;
-    }
-
-    public function addServiceHistory(ServiceHistory $serviceHistory): static
-    {
-        if (!$this->serviceHistories->contains($serviceHistory)) {
-            $this->serviceHistories->add($serviceHistory);
-            $serviceHistory->setCreator($this);
-        }
-
-        return $this;
-    }
-
-    public function removeServiceHistory(ServiceHistory $serviceHistory): static
-    {
-        if ($this->serviceHistories->removeElement($serviceHistory)) {
-            // set the owning side to null (unless already changed)
-            if ($serviceHistory->getCreator() === $this) {
-                $serviceHistory->setCreator(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function isVerified(): bool
     {
         return $this->isVerified;
@@ -265,6 +235,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsVerified(bool $isVerified): static
     {
         $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, File>
+     */
+    public function getFiles(): Collection
+    {
+        return $this->files;
+    }
+
+    public function addFile(File $file): static
+    {
+        if (!$this->files->contains($file)) {
+            $this->files->add($file);
+            $file->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFile(File $file): static
+    {
+        if ($this->files->removeElement($file)) {
+            // set the owning side to null (unless already changed)
+            if ($file->getOwner() === $this) {
+                $file->setOwner(null);
+            }
+        }
 
         return $this;
     }

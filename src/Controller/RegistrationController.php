@@ -25,7 +25,7 @@ class RegistrationController extends AbstractController
     }
 
     #[Route('/register', name: 'register')]
-    #[IsGranted('ROLE_ADMIN')]
+//    #[IsGranted('ROLE_ADMIN')]
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
     {
         $user = new User();

@@ -4,9 +4,10 @@ namespace App\Enum;
 
 enum UserRole: string
 {
-    case Admin = 'ADMIN';
-    case Manager = 'MANAGER';
-    case Member = 'MEMBER';
+    case Admin = 'ROLE_ADMIN';
+    case Manager = 'ROLE_MANAGER';
+    case Member = 'ROLE_MEMBER';
+    case Api = 'ROLE_API';
 
     public static function getChoices(): array
     {

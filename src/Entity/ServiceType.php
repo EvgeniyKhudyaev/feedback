@@ -27,7 +27,7 @@ class ServiceType
     private ?string $description;
 
     #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: Status::class)]
-    private ?string $status;
+    private ?Status $status;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private \DateTimeInterface $createdAt;
@@ -87,12 +87,12 @@ class ServiceType
         return $this;
     }
 
-    public function getStatus(): string
+    public function getStatus(): Status
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(Status $status): static
     {
         $this->status = $status;
 

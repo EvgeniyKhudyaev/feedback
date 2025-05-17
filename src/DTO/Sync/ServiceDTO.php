@@ -1,0 +1,28 @@
+<?php
+
+namespace App\DTO\Sync;
+
+use App\Enum\Status;
+use Symfony\Component\Validator\Constraints as Assert;
+
+class ServiceDTO
+{
+    #[Assert\NotBlank]
+    #[Assert\Uuid]
+    public string $uuid;
+
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
+    public string $name;
+
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 65535)]
+    public string $description;
+
+    #[Assert\NotBlank]
+    #[Assert\Uuid]
+    public string $serviceTypeUuid;
+
+    #[Assert\NotBlank]
+    public Status $status;
+}
