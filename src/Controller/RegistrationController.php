@@ -3,8 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Enum\UserRole;
-use App\Form\RegistrationForm;
+use App\Form\User\UserRegistrationType;
 use App\Security\EmailVerifier;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -16,7 +15,6 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use SymfonyCasts\Bundle\VerifyEmail\Exception\VerifyEmailExceptionInterface;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class RegistrationController extends AbstractController
 {
@@ -30,7 +28,7 @@ class RegistrationController extends AbstractController
     {
         $user = new User();
 //        $user->setName('test'); //
-        $form = $this->createForm(RegistrationForm::class, $user);
+        $form = $this->createForm(UserRegistrationType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

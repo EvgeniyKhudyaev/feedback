@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Пользователь: {{ user.name }}{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1>Профиль пользователя</h1>
+
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                Информация о пользователе #{{ user.id }}
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Имя</dt>
+                    <dd class="col-sm-9">{{ user.name }}</dd>
+
+                    <dt class="col-sm-3">Email</dt>
+                    <dd class="col-sm-9">{{ user.email }}</dd>
+
+                    {% if user.role is defined %}
+                        <dt class="col-sm-3">Роль</dt>
+                        <dd class="col-sm-9">{{ user.role.value }}</dd>
+                    {% endif %}
+
+                    {% if user.status is defined %}
+                        <dt class="col-sm-3">Статус</dt>
+                        <dd class="col-sm-9">
+                            {% if user.status == 'active' %}
+                                <span class="badge bg-success">Активен</span>
+                            {% elseif user.status == 'inactive' %}
+                                <span class="badge bg-secondary">Неактивен</span>
+                            {% else %}
+                                <span class="badge bg-warning">Неизвестно</span>
+                            {% endif %}
+                        </dd>
+                    {% endif %}
+                </dl>
+
+                <a href="{{ path('admin_users_index') }}" class="btn btn-secondary">Вернуться к списку</a>
+                <a href="{{ path('admin_user_edit', { id: user.id }) }}" class="btn btn-primary">Редактировать</a>
+                <form method="post" action="{{ path('admin_user_delete', { id: user.id }) }}" style="display:inline-block;" onsubmit="return confirm('Удалить пользователя?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ user.id) }}">
+                    <button class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

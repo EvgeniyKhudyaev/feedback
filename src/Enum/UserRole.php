@@ -12,9 +12,9 @@ enum UserRole: string
     public static function getChoices(): array
     {
         return [
-            'Администратор' => self::Admin->value,
-            'Менеджер' => self::Manager->value,
-            'Участник' => self::Member->value,
+            'Администратор' => self::Admin,
+            'Менеджер' => self::Manager,
+            'Участник' => self::Member,
         ];
     }
 }

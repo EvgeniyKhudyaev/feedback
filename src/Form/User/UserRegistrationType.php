@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Form;
+namespace App\Form\User;
 
 use App\Entity\User;
 use App\Enum\UserRole;
@@ -15,7 +15,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
-class RegistrationForm extends AbstractType
+class UserRegistrationType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
