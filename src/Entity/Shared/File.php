@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Shared;
 
+use App\Entity\User\User;
 use App\Repository\FileRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FileRepository::class)]
@@ -13,32 +15,33 @@ class File
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: false)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 1024)]
+    #[ORM\Column(type: 'string', length: 1024, nullable: false)]
     private ?string $path = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(type: 'string', length: 100, nullable: false)]
     private ?string $mimeType = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer', nullable: false)]
     private ?int $size = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(type: 'string', length: 100, nullable: false)]
     private ?string $extension = null;
 
-    #[ORM\Column(length: 128)]
+    #[ORM\Column(type: 'string', length: 128, unique: true, nullable: false)]
     private ?string $hash = null;
 
     #[ORM\ManyToOne(inversedBy: 'files')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?User $owner = null;
 
-    #[ORM\Column]
-    private ?\DateTime $createdAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\Column]
-    private ?\DateTime $updatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    private ?\DateTimeInterface $updatedAt = null;
 
 
     public function getId(): ?int
@@ -106,24 +109,24 @@ class File
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTime $createdAt): static
+    public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTime
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTime $updatedAt): static
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
 

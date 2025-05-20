@@ -1,8 +1,11 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\User;
 
-use App\Enum\Status;
+use App\Entity\Feedback\FeedbackFieldAnswer;
+use App\Entity\Feedback\FeedbackManager;
+use App\Entity\Shared\File;
+use App\Enum\Shared\Status;
 use App\Enum\UserRole;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -69,11 +72,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: File::class, mappedBy: 'owner')]
     private Collection $files;
 
+    /**
+     * @var Collection<int, FeedbackFieldAnswer>
+     */
+    #[ORM\OneToMany(targetEntity: FeedbackFieldAnswer::class, mappedBy: 'responder')]
+    private Collection $feedbackFieldValues;
+
+    /**
+     * @var Collection<int, FeedbackManager>
+     */
+    #[ORM\OneToMany(targetEntity: FeedbackManager::class, mappedBy: 'editor')]
+    private Collection $feedbackEditors;
+
     public function __construct()
     {
         $this->uuid = Guid::uuid4()->toString();
-        $this->status = Status::Active;
+        $this->status = Status::ACTIVE;
         $this->files = new ArrayCollection();
+        $this->feedbackFieldValues = new ArrayCollection();
+        $this->feedbackEditors = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -215,7 +232,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        return [$this->role->value ?? UserRole::Member->value];
+        return [$this->role->value ?? UserRole::MEMBER->value];
     }
 
     public function eraseCredentials(): void
@@ -263,6 +280,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($file->getOwner() === $this) {
                 $file->setOwner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, FeedbackFieldAnswer>
+     */
+    public function getFeedbackFieldValues(): Collection
+    {
+        return $this->feedbackFieldValues;
+    }
+
+    public function addFeedbackFieldValue(FeedbackFieldAnswer $feedbackFieldValue): static
+    {
+        if (!$this->feedbackFieldValues->contains($feedbackFieldValue)) {
+            $this->feedbackFieldValues->add($feedbackFieldValue);
+            $feedbackFieldValue->setResponder($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFeedbackFieldValue(FeedbackFieldAnswer $feedbackFieldValue): static
+    {
+        if ($this->feedbackFieldValues->removeElement($feedbackFieldValue)) {
+            // set the owning side to null (unless already changed)
+            if ($feedbackFieldValue->getResponder() === $this) {
+                $feedbackFieldValue->setResponder(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, FeedbackManager>
+     */
+    public function getFeedbackEditors(): Collection
+    {
+        return $this->feedbackEditors;
+    }
+
+    public function addFeedbackEditor(FeedbackManager $feedbackEditor): static
+    {
+        if (!$this->feedbackEditors->contains($feedbackEditor)) {
+            $this->feedbackEditors->add($feedbackEditor);
+            $feedbackEditor->setEditor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFeedbackEditor(FeedbackManager $feedbackEditor): static
+    {
+        if ($this->feedbackEditors->removeElement($feedbackEditor)) {
+            // set the owning side to null (unless already changed)
+            if ($feedbackEditor->getEditor() === $this) {
+                $feedbackEditor->setEditor(null);
             }
         }
 

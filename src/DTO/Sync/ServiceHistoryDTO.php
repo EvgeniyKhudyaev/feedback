@@ -2,7 +2,7 @@
 
 namespace App\DTO\Sync;
 
-use App\Enum\Status;
+use App\Enum\Shared\Status;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ServiceHistoryDTO

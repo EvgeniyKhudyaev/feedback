@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\ServiceHistory;
+use App\Entity\Sync\ServiceHistory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

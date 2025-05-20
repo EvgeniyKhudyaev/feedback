@@ -8,11 +8,11 @@ use App\DTO\Sync\ServiceHistoryDTO;
 use App\DTO\Sync\ServiceStateDTO;
 use App\DTO\Sync\ServiceTypeDTO;
 use App\DTO\Sync\SyncPayloadDTO;
-use App\Entity\ClientUser;
-use App\Entity\Service;
-use App\Entity\ServiceHistory;
-use App\Entity\ServiceState;
-use App\Entity\ServiceType;
+use App\Entity\Sync\ClientUser;
+use App\Entity\Sync\Service;
+use App\Entity\Sync\ServiceHistory;
+use App\Entity\Sync\ServiceState;
+use App\Entity\Sync\ServiceType;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 

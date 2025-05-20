@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Sync;
 
-use App\Enum\Status;
-use App\Repository\ServiceRepository;
+use App\Enum\Shared\Status;
+use App\Repository\ServiceStatusRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: ServiceRepository::class)]
-class Service
+#[ORM\Entity(repositoryClass: ServiceStatusRepository::class)]
+class ServiceState
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -20,15 +20,11 @@ class Service
     #[ORM\Column(type: Types::GUID, unique: true, nullable: false)]
     private ?string $uuid = null;
 
-    #[ORM\Column(length: 255, unique: true, nullable: false)]
+    #[ORM\Column(length: 50, unique: true, nullable: false)]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: false)]
     private ?string $description = null;
-
-    #[ORM\ManyToOne(inversedBy: 'services')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?ServiceType $serviceType = null;
 
     #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: Status::class)]
     private ?Status $status;
@@ -42,14 +38,13 @@ class Service
     /**
      * @var Collection<int, ServiceHistory>
      */
-    #[ORM\OneToMany(targetEntity: ServiceHistory::class, mappedBy: 'service')]
+    #[ORM\OneToMany(targetEntity: ServiceHistory::class, mappedBy: 'status')]
     private Collection $serviceHistories;
 
     public function __construct()
     {
         $this->serviceHistories = new ArrayCollection();
     }
-
 
     public function getId(): ?int
     {
@@ -92,19 +87,7 @@ class Service
         return $this;
     }
 
-    public function getServiceType(): ?ServiceType
-    {
-        return $this->serviceType;
-    }
-
-    public function setServiceType(ServiceType $serviceType): static
-    {
-        $this->serviceType = $serviceType;
-
-        return $this;
-    }
-
-    public function getStatus(): ?Status
+    public function getStatus(): Status
     {
         return $this->status;
     }
@@ -152,7 +135,7 @@ class Service
     {
         if (!$this->serviceHistories->contains($serviceHistory)) {
             $this->serviceHistories->add($serviceHistory);
-            $serviceHistory->setService($this);
+            $serviceHistory->setStatus($this);
         }
 
         return $this;
@@ -162,15 +145,11 @@ class Service
     {
         if ($this->serviceHistories->removeElement($serviceHistory)) {
             // set the owning side to null (unless already changed)
-            if ($serviceHistory->getService() === $this) {
-                $serviceHistory->setService(null);
+            if ($serviceHistory->getStatus() === $this) {
+                $serviceHistory->setStatus(null);
             }
         }
 
         return $this;
     }
-
-
-
-
 }

@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
+use App\Entity\User\User;
 use App\Form\User\UserRegistrationType;
 use App\Security\EmailVerifier;
 use Doctrine\ORM\EntityManagerInterface;

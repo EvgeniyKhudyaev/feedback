@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\ServiceState;
+use App\Entity\Sync\ServiceState;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Sync;
 
-use App\Enum\Status;
-use App\Repository\ServiceStatusRepository;
+use App\Enum\Shared\Status;
+use App\Repository\ServiceTypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: ServiceStatusRepository::class)]
-class ServiceState
+#[ORM\Entity(repositoryClass: ServiceTypeRepository::class)]
+class ServiceType
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -18,32 +18,32 @@ class ServiceState
     private ?int $id = null;
 
     #[ORM\Column(type: Types::GUID, unique: true, nullable: false)]
-    private ?string $uuid = null;
+    private ?string $uuid;
 
-    #[ORM\Column(length: 50, unique: true, nullable: false)]
-    private ?string $name = null;
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: false)]
+    private ?string $name;
 
     #[ORM\Column(type: Types::TEXT, nullable: false)]
-    private ?string $description = null;
+    private ?string $description;
 
     #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: Status::class)]
     private ?Status $status;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
-    private ?\DateTimeInterface $createdAt = null;
+    private \DateTimeInterface $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
-    private ?\DateTimeInterface $updatedAt = null;
+    private \DateTimeInterface $updatedAt;
 
     /**
-     * @var Collection<int, ServiceHistory>
+     * @var Collection<int, Service>
      */
-    #[ORM\OneToMany(targetEntity: ServiceHistory::class, mappedBy: 'status')]
-    private Collection $serviceHistories;
+    #[ORM\OneToMany(targetEntity: Service::class, mappedBy: 'serviceType', orphanRemoval: true)]
+    private Collection $services;
 
     public function __construct()
     {
-        $this->serviceHistories = new ArrayCollection();
+        $this->services = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -51,7 +51,7 @@ class ServiceState
         return $this->id;
     }
 
-    public function getUuid(): ?string
+    public function getUuid(): string
     {
         return $this->uuid;
     }
@@ -63,7 +63,7 @@ class ServiceState
         return $this;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
@@ -75,7 +75,7 @@ class ServiceState
         return $this;
     }
 
-    public function getDescription(): ?string
+    public function getDescription(): string
     {
         return $this->description;
     }
@@ -99,7 +99,7 @@ class ServiceState
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): \DateTimeInterface
     {
         return $this->createdAt;
     }
@@ -111,7 +111,7 @@ class ServiceState
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeInterface
+    public function getUpdatedAt(): \DateTimeInterface
     {
         return $this->updatedAt;
     }
@@ -124,29 +124,29 @@ class ServiceState
     }
 
     /**
-     * @return Collection<int, ServiceHistory>
+     * @return Collection<int, Service>
      */
-    public function getServiceHistories(): Collection
+    public function getServices(): Collection
     {
-        return $this->serviceHistories;
+        return $this->services;
     }
 
-    public function addServiceHistory(ServiceHistory $serviceHistory): static
+    public function addService(Service $service): static
     {
-        if (!$this->serviceHistories->contains($serviceHistory)) {
-            $this->serviceHistories->add($serviceHistory);
-            $serviceHistory->setStatus($this);
+        if (!$this->services->contains($service)) {
+            $this->services->add($service);
+            $service->setServiceType($this);
         }
 
         return $this;
     }
 
-    public function removeServiceHistory(ServiceHistory $serviceHistory): static
+    public function removeService(Service $service): static
     {
-        if ($this->serviceHistories->removeElement($serviceHistory)) {
+        if ($this->services->removeElement($service)) {
             // set the owning side to null (unless already changed)
-            if ($serviceHistory->getStatus() === $this) {
-                $serviceHistory->setStatus(null);
+            if ($service->getServiceType() === $this) {
+                $service->setServiceType(null);
             }
         }
 

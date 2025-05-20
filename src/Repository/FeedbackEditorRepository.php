@@ -2,39 +2,39 @@
 
 namespace App\Repository;
 
-use App\Entity\Sync\ServiceType;
+use App\Entity\Feedback\FeedbackManager;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<ServiceType>
+ * @extends ServiceEntityRepository<FeedbackManager>
  */
-class ServiceTypeRepository extends ServiceEntityRepository
+class FeedbackEditorRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, ServiceType::class);
+        parent::__construct($registry, FeedbackManager::class);
     }
 
     //    /**
-    //     * @return ServiceType[] Returns an array of ServiceType objects
+    //     * @return FeedbackEditor[] Returns an array of FeedbackEditor objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
+    //        return $this->createQueryBuilder('f')
+    //            ->andWhere('f.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
+    //            ->orderBy('f.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?ServiceType
+    //    public function findOneBySomeField($value): ?FeedbackEditor
     //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
+    //        return $this->createQueryBuilder('f')
+    //            ->andWhere('f.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

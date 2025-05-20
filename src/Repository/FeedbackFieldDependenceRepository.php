@@ -2,22 +2,22 @@
 
 namespace App\Repository;
 
-use App\Entity\Shared\File;
+use App\Entity\Feedback\FeedbackFieldDependence;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<File>
+ * @extends ServiceEntityRepository<FeedbackFieldDependence>
  */
-class FileRepository extends ServiceEntityRepository
+class FeedbackFieldDependenceRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, File::class);
+        parent::__construct($registry, FeedbackFieldDependence::class);
     }
 
     //    /**
-    //     * @return File[] Returns an array of File objects
+    //     * @return FeedbackFieldDependence[] Returns an array of FeedbackFieldDependence objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class FileRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?File
+    //    public function findOneBySomeField($value): ?FeedbackFieldDependence
     //    {
     //        return $this->createQueryBuilder('f')
     //            ->andWhere('f.exampleField = :val')

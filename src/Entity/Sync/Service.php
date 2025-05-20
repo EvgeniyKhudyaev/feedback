@@ -1,17 +1,16 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Sync;
 
-use App\Enum\Status;
-use App\Repository\ClientUserRepository;
+use App\Enum\Shared\Status;
+use App\Repository\ServiceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: ClientUserRepository::class)]
-#[ORM\Table(name: '`client_user`')]
-class ClientUser
+#[ORM\Entity(repositoryClass: ServiceRepository::class)]
+class Service
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -21,20 +20,18 @@ class ClientUser
     #[ORM\Column(type: Types::GUID, unique: true, nullable: false)]
     private ?string $uuid = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(length: 255, unique: true, nullable: false)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: false)]
-    private ?string $email = null;
+    #[ORM\Column(type: Types::TEXT, nullable: false)]
+    private ?string $description = null;
 
-    #[ORM\Column(type: 'string', length: 20, nullable: true)]
-    private ?string $phone = null;
+    #[ORM\ManyToOne(inversedBy: 'services')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?ServiceType $serviceType = null;
 
-    #[ORM\Column(type: 'string', length: 100, nullable: true)]
-    private ?string $telegram = null;
-
-    #[ORM\Column(type: 'string', length: 20, enumType: Status::class)]
-    private ?Status $status = null;
+    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: Status::class)]
+    private ?Status $status;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $createdAt = null;
@@ -45,13 +42,14 @@ class ClientUser
     /**
      * @var Collection<int, ServiceHistory>
      */
-    #[ORM\OneToMany(targetEntity: ServiceHistory::class, mappedBy: 'creator', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: ServiceHistory::class, mappedBy: 'service')]
     private Collection $serviceHistories;
 
     public function __construct()
     {
         $this->serviceHistories = new ArrayCollection();
     }
+
 
     public function getId(): ?int
     {
@@ -82,38 +80,26 @@ class ClientUser
         return $this;
     }
 
-    public function getPhone(): ?string
+    public function getDescription(): ?string
     {
-        return $this->phone;
+        return $this->description;
     }
 
-    public function setPhone(?string $phone): static
+    public function setDescription(string $description): static
     {
-        $this->phone = $phone;
+        $this->description = $description;
 
         return $this;
     }
 
-    public function getEmail(): ?string
+    public function getServiceType(): ?ServiceType
     {
-        return $this->email;
+        return $this->serviceType;
     }
 
-    public function setEmail(string $email): static
+    public function setServiceType(ServiceType $serviceType): static
     {
-        $this->email = $email;
-
-        return $this;
-    }
-
-    public function getTelegram(): ?string
-    {
-        return $this->telegram;
-    }
-
-    public function setTelegram(?string $telegram): static
-    {
-        $this->telegram = $telegram;
+        $this->serviceType = $serviceType;
 
         return $this;
     }
@@ -166,7 +152,7 @@ class ClientUser
     {
         if (!$this->serviceHistories->contains($serviceHistory)) {
             $this->serviceHistories->add($serviceHistory);
-            $serviceHistory->setCreator($this);
+            $serviceHistory->setService($this);
         }
 
         return $this;
@@ -174,8 +160,17 @@ class ClientUser
 
     public function removeServiceHistory(ServiceHistory $serviceHistory): static
     {
-        $this->serviceHistories->removeElement($serviceHistory);
+        if ($this->serviceHistories->removeElement($serviceHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($serviceHistory->getService() === $this) {
+                $serviceHistory->setService(null);
+            }
+        }
 
         return $this;
     }
+
+
+
+
 }

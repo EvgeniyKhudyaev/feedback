@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Sync;
 
-use App\Enum\Status;
+use App\Enum\Shared\Status;
 use App\Repository\ServiceHistoryRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;

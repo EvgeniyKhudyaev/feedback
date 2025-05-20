@@ -4,17 +4,17 @@ namespace App\Enum;
 
 enum UserRole: string
 {
-    case Admin = 'ROLE_ADMIN';
-    case Manager = 'ROLE_MANAGER';
-    case Member = 'ROLE_MEMBER';
-    case Api = 'ROLE_API';
+    case ADMIN = 'ROLE_ADMIN';
+    case MANAGER = 'ROLE_MANAGER';
+    case MEMBER = 'ROLE_MEMBER';
+    case API = 'ROLE_API';
 
     public static function getChoices(): array
     {
         return [
-            'Администратор' => self::Admin,
-            'Менеджер' => self::Manager,
-            'Участник' => self::Member,
+            'Администратор' => self::ADMIN,
+            'Менеджер' => self::MANAGER,
+            'Участник' => self::MEMBER,
         ];
     }
 }
