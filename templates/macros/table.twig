@@ -1,0 +1,69 @@
+{% macro sortable_column(label, field, currentSort, currentDirection, routeName) %}
+    {% set newDirection = 'ASC' %}
+    {% if currentSort == field and currentDirection == 'ASC' %}
+        {% set newDirection = 'DESC' %}
+    {% endif %}
+    <a href="{{ path(routeName, app.request.query.all | merge({'sort': field, 'direction': newDirection})) }}"
+       class="text-decoration-none text-white">
+        {{ label }}
+        <span class="ms-1 d-inline-block text-center" style="width: 12px;">
+            {% if currentSort == field %}
+                {{ currentDirection == 'ASC' ? '▲' : '▼' }}
+            {% else %}
+                &nbsp;
+            {% endif %}
+        </span>
+    </a>
+{% endmacro %}
+
+{% macro filter_input(id, name, value, placeholder, extraClasses='') %}
+    <label for="{{ id }}" class="visually-hidden">{{ placeholder }}</label>
+    <input
+            type="text"
+            id="{{ id }}"
+            name="{{ name }}"
+            value="{{ value }}"
+            placeholder="{{ placeholder }}"
+            class="form-control form-control-sm {{ extraClasses }}"
+            onblur="this.form.submit()"
+            autocomplete="off"
+    >
+{% endmacro %}
+
+{% macro filter_select(id, name, options, selected, label, extraClasses='') %}
+    <label for="{{ id }}" class="visually-hidden">{{ label }}</label>
+    <select
+            id="{{ id }}"
+            name="{{ name }}"
+            class="form-select form-select-sm {{ extraClasses }}"
+            onchange="this.form.submit()"
+    >
+        <option value="">Все</option>
+        {% for key, optionLabel in options %}
+            <option value="{{ key }}" {% if key == selected %}selected{% endif %}>{{ optionLabel }}</option>
+        {% endfor %}
+    </select>
+{% endmacro %}
+
+{% macro filter_date(idFrom, nameFrom, valueFrom, idTo, nameTo, valueTo, labelFrom='Дата от', labelTo='Дата до', extraClass='auto-submit') %}
+    <div class="d-flex flex-column">
+        <input
+                type="date"
+                id="{{ idFrom }}"
+                name="{{ nameFrom }}"
+                value="{{ valueFrom|default('') }}"
+                class="form-control form-control-sm mb-1 {{ extraClass }}"
+                aria-label="{{ labelFrom }}"
+                placeholder="{{ labelFrom }}"
+        >
+        <input
+                type="date"
+                id="{{ idTo }}"
+                name="{{ nameTo }}"
+                value="{{ valueTo|default('') }}"
+                class="form-control form-control-sm {{ extraClass }}"
+                aria-label="{{ labelTo }}"
+                placeholder="{{ labelTo }}"
+        >
+    </div>
+{% endmacro %}

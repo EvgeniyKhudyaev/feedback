@@ -37,7 +37,7 @@
                     {% endif %}
                 </dl>
 
-                <a href="{{ path('admin_users_index') }}" class="btn btn-secondary">Вернуться к списку</a>
+                <a href="{{ path('admin_user_index') }}" class="btn btn-secondary">Вернуться к списку</a>
                 <a href="{{ path('admin_user_edit', { id: user.id }) }}" class="btn btn-primary">Редактировать</a>
                 <form method="post" action="{{ path('admin_user_delete', { id: user.id }) }}" style="display:inline-block;" onsubmit="return confirm('Удалить пользователя?');">
                     <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ user.id) }}">

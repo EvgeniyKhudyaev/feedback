@@ -2,7 +2,7 @@
 
 namespace App\DTO\Sync;
 
-use App\Enum\Shared\Status;
+use App\Enum\Shared\StatusEnum;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ServiceDTO
@@ -24,5 +24,5 @@ class ServiceDTO
     public string $serviceTypeUuid;
 
     #[Assert\NotBlank]
-    public Status $status;
+    public StatusEnum $status;
 }

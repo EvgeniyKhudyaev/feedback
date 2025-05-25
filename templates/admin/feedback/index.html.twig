@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+{% import 'macros/table.twig' as table %}
+
+{% block title %}Опросы{% endblock %}
+
+{% block body %}
+    <h1>Опросы</h1>
+
+    <form method="get" id="filtersForm" novalidate>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark align-middle">
+                <tr>
+                    <th style="width: 80px;">
+                        {{ table.sortable_column('ID', 'f.id', sort, direction, 'admin_feedback_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Имя', 'f.name', sort, direction, 'admin_feedback_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Тип', 'f.type', sort, direction, 'admin_feedback_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Область', 'f.scope', sort, direction, 'admin_feedback_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Статус', 'f.status', sort, direction, 'admin_feedback_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Дата создания', 'f.createdAt', sort, direction, 'admin_feedback_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Дата обновления', 'f.updatedAt', sort, direction, 'admin_feedback_index') }}
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        {{ table.filter_input('filter_id_id', 'filter_id', filterId, 'ID', 'auto-submit') }}
+                    </th>
+                    <th>
+                        {{ table.filter_input('filter_name_id', 'filter_name', filterName, 'Фильтр по имени', 'auto-submit') }}
+                    </th>
+                    <th>
+                        {{ table.filter_select('filter_type_id', 'filter_type', types, filterType, 'Фильтр по типу', 'auto-submit') }}
+                    </th>
+                    <th>
+                        {{ table.filter_select('filter_scope_id', 'filter_scope', scopes, filterScope, 'Фильтр по области', 'auto-submit') }}
+                    </th>
+                    <th>
+                        {{ table.filter_select('filter_status_id', 'filter_status', statuses, filterStatus, 'Фильтр по статусу', 'auto-submit') }}
+                    </th>
+{#                    <th>#}
+{#                        {{ table.filter_date(#}
+{#                            'filter_created_from', 'filter_created_from', filterCreatedFrom,#}
+{#                            'filter_created_to', 'filter_created_to', filterCreatedTo,#}
+{#                            'Дата создания от', 'Дата создания до'#}
+{#                        ) }}#}
+{#                    </th>#}
+                    <th></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for feedback in pagination %}
+                    <tr>
+                        <td style="width: 80px;">
+                            <a href="{{ path('admin_feedback_view', { id: feedback.id }) }}">{{ feedback.id }}</a>
+                        </td>
+                        <td>{{ feedback.name }}</td>
+                        <td>{{ types[feedback.type.value] }}</td>
+                        <td>{{ scopes[feedback.scope.value] }}</td>
+                        <td>{{ statuses[feedback.status.value] }}</td>
+                        <td>{{ feedback.createdAt|date('d.m.Y H:i') }}</td>
+                        <td>{{ feedback.updatedAt|date('d.m.Y H:i') }}</td>
+
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">Ничего не найдено</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+    <div class="navigation">
+        {{ knp_pagination_render(pagination) }}
+    </div>
+{% endblock %}

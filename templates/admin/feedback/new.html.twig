@@ -1,0 +1,223 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Создать опрос{% endblock %}
+
+{% block body %}
+    <div class="container py-5" style="max-width: 900px;">
+        {% if not form.vars.valid %}
+            <div class="alert alert-danger">
+                <strong>Форма содержит ошибки:</strong>
+                <pre>{{ dump(form.vars.errors) }}</pre>
+            </div>
+        {% endif %}
+        <h1 class="mb-4">Создать новый опрос</h1>
+
+        {{ form_start(form, {'attr': {'class': 'needs-validation p-4 border rounded shadow-sm'}, 'novalidate': 'novalidate'}) }}
+
+        <div class="mb-4">
+            {{ form_label(form.name, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+            {{ form_widget(form.name, {'attr': {'class': 'form-control', 'placeholder': 'Введите название опроса', 'required': 'required', 'style': 'max-width: 400px;'}}) }}
+            {{ form_errors(form.name) }}
+        </div>
+
+        <hr class="my-4">
+        <h5 class="mb-3">Вопросы</h5>
+
+        <div id="fields-wrapper"
+             data-prototype="{{ form_widget(form.fields.vars.prototype)|e('html_attr') }}">
+            {% for field in form.fields %}
+                <div class="mb-3 border rounded p-3 position-relative field-block">
+                    {{ form_label(field.label, null, {'label_attr': {'class': 'form-label fw-semibold mb-2'}}) }}
+                    {{ form_widget(field.label, {'attr': {'class': 'form-control', 'style': 'max-width: 400px;'}}) }}
+                    {{ form_errors(field.label) }}
+
+                    {{ form_label(field.type, null, {'label_attr': {'class': 'form-label fw-semibold mb-2 mt-3'}}) }}
+                    {{ form_widget(field.type, {'attr': {'class': 'form-select d-inline-block type-select', 'style': 'max-width: 200px;'}}) }}
+                    {{ form_errors(field.type) }}
+
+                    {{ form_widget(field.required, {'attr': {'class': 'form-check-input'}}) }}
+                    {{ form_label(field.required, null, {'label_attr': {'class': 'form-check-label fw-semibold me-2'}}) }}
+                    {{ form_errors(field.required) }}
+
+                    {# Опции #}
+                    <div class="options-wrapper mt-3"
+                         data-prototype="{{ form_widget(field.options.vars.prototype)|e('html_attr') }}">
+                        {% for option in field.options %}
+                            <div class="option-item mb-2 d-flex align-items-center">
+                                {{ form_widget(option.label, {'attr': {'class': 'form-control', 'style': 'max-width: 400px;'}}) }}
+                                <button type="button" class="btn btn-danger btn-sm ms-2" onclick="removeOption(this)">Удалить опцию</button>
+                            </div>
+                        {% endfor %}
+                        <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="addOption(this)">Добавить опцию</button>
+                    </div>
+
+                    <div class="type-output text-muted mt-2"></div>
+
+                    <button type="button" class="btn btn-danger btn-sm mt-3" onclick="removeField(this)">Удалить вопрос</button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <button type="button" class="btn btn-secondary mb-4" id="add-field-btn">Добавить вопрос</button>
+
+        <hr class="my-4">
+
+        <div class="mb-4">
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+        </div>
+
+        {{ form_end(form, { 'render_rest': false }) }}
+    </div>
+
+    <script>
+        const fieldsWrapper = document.getElementById('fields-wrapper');
+        const addFieldBtn = document.getElementById('add-field-btn');
+        const prototype = fieldsWrapper.dataset.prototype;
+        let index = fieldsWrapper.querySelectorAll('.field-block').length;
+
+        console.log('fieldsWrapper:', fieldsWrapper);
+        console.log('addFieldBtn:', addFieldBtn);
+        console.log('prototype:', prototype);
+        console.log('initial index:', index);
+
+        addFieldBtn.addEventListener('click', () => {
+            console.log('Добавляем новый вопрос, current index:', index);
+            let newForm = prototype.replace(/__field__/g, index);
+            console.log('newForm HTML:', newForm);
+
+            const div = document.createElement('div');
+            div.classList.add('mb-3', 'border', 'rounded', 'p-3', 'position-relative', 'field-block');
+            div.innerHTML = newForm;
+
+            console.log("div:", div);
+
+            const feedbackFieldsOptions = div.querySelector(`#feedback_fields_${index}_options`);
+            const dataPrototypeOption = feedbackFieldsOptions.getAttribute('data-prototype');
+            const escapedDataPrototype = dataPrototypeOption.replace(/"/g, '&quot;');
+            // label__
+            // Добавляем блок опций и вывод типа
+            div.innerHTML += `
+                <div class="options-wrapper mt-3" data-prototype="${escapedDataPrototype}"></div>
+                <div class="type-output text-muted mt-2"></div>
+            `;
+
+            // Добавляем кнопку удаления вопроса и привязываем событие
+            const removeFieldBtn = document.createElement('button');
+            removeFieldBtn.type = 'button';
+            removeFieldBtn.classList.add('btn', 'btn-danger', 'btn-sm', 'mt-3');
+            removeFieldBtn.textContent = 'Удалить вопрос';
+            removeFieldBtn.addEventListener('click', () => removeField(removeFieldBtn));
+            div.appendChild(removeFieldBtn);
+
+            fieldsWrapper.appendChild(div);
+
+            // Устанавливаем prototype для опций нового вопроса
+            const optionsWrapper = div.querySelector('.options-wrapper');
+            optionsWrapper.dataset.prototype = getOptionPrototypeForIndex(index);
+
+            console.log('optionsWrapper dataset.prototype:', optionsWrapper.dataset.prototype);
+
+            // Добавляем кнопку "Добавить опцию" и событие
+            const addOptionBtn = document.createElement('button');
+            addOptionBtn.type = 'button';
+            addOptionBtn.classList.add('btn', 'btn-secondary', 'btn-sm', 'mt-2');
+            addOptionBtn.textContent = 'Добавить опцию';
+            addOptionBtn.addEventListener('click', () => addOption(addOptionBtn));
+            optionsWrapper.appendChild(addOptionBtn);
+
+            // Навешиваем обработчик изменения типа вопроса
+            const typeSelect = div.querySelector('.type-select');
+            typeSelect.addEventListener('change', onTypeChange);
+
+            // Инициализируем состояние показа опций
+            onTypeChange({ target: typeSelect });
+
+            index++;
+        });
+
+        // Функция для обработки изменения типа вопроса
+        function onTypeChange(event) {
+            const selectedValue = event.target.value;
+            const fieldBlock = event.target.closest('.field-block');
+            const outputDiv = fieldBlock.querySelector('.type-output');
+            const optionsWrapper = fieldBlock.querySelector('.options-wrapper');
+
+            const showTypes = ['select', 'multiselect', 'radio'];
+
+            if (showTypes.includes(selectedValue)) {
+                outputDiv.textContent = 'Выбран тип: ' + event.target.options[event.target.selectedIndex].text;
+                optionsWrapper.style.display = 'block';
+            } else {
+                outputDiv.textContent = '';
+                optionsWrapper.style.display = 'none';
+            }
+        }
+
+        // Навешиваем обработчики на существующие select-элементы
+        document.querySelectorAll('.type-select').forEach(select => {
+            select.addEventListener('change', onTypeChange);
+            onTypeChange({ target: select });
+        });
+
+        function removeField(button) {
+            console.log('Удаляем вопрос');
+            button.closest('div.field-block').remove();
+        }
+
+        function addOption(button) {
+            const optionsWrapper = button.closest('.options-wrapper');
+            const prototype = optionsWrapper.dataset.prototype;
+            const index = optionsWrapper.querySelectorAll('.option-item').length;
+
+            console.log('Добавляем опцию, текущий индекс опции:', index);
+            console.log('Prototype для опции:', prototype);
+
+            let newForm = prototype.replace(/__option__/g, index);
+
+            const div = document.createElement('div');
+            div.classList.add('option-item', 'mb-2', 'd-flex', 'align-items-center');
+            div.innerHTML = newForm;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.classList.add('btn', 'btn-danger', 'btn-sm', 'ms-2');
+            removeBtn.textContent = 'Удалить опцию';
+            removeBtn.addEventListener('click', () => removeOption(removeBtn));
+
+            div.appendChild(removeBtn);
+
+            optionsWrapper.insertBefore(div, button);
+        }
+
+        function removeOption(button) {
+            console.log('Удаляем опцию');
+            button.closest('.option-item').remove();
+        }
+
+        function getOptionPrototypeForIndex(fieldIndex) {
+            const firstField = fieldsWrapper.querySelector('.field-block');
+            console.log('getOptionPrototypeForIndex called for fieldIndex:', fieldIndex);
+            if (!firstField) {
+                console.warn('No firstField found');
+                return '';
+            }
+
+            const optionsWrapper = firstField.querySelector('.options-wrapper');
+            if (!optionsWrapper) {
+                console.warn('No optionsWrapper in firstField');
+                return '';
+            }
+
+            let proto = optionsWrapper.dataset.prototype;
+            console.log('Prototype from first field options:', proto);
+            if (!proto) {
+                console.warn('No prototype in optionsWrapper dataset');
+                return '';
+            }
+
+            proto = proto.replace(/__field__/g, fieldIndex);
+            console.log('Processed option prototype:', proto);
+            return proto;
+        }
+    </script>
+{% endblock %}

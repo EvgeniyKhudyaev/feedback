@@ -2,7 +2,7 @@
 
 namespace App\Entity\Sync;
 
-use App\Enum\Shared\Status;
+use App\Enum\Shared\StatusEnum;
 use App\Repository\ServiceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -30,8 +30,8 @@ class Service
     #[ORM\JoinColumn(nullable: false)]
     private ?ServiceType $serviceType = null;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: Status::class)]
-    private ?Status $status;
+    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: StatusEnum::class)]
+    private ?StatusEnum $status;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $createdAt = null;
@@ -104,12 +104,12 @@ class Service
         return $this;
     }
 
-    public function getStatus(): ?Status
+    public function getStatus(): ?StatusEnum
     {
         return $this->status;
     }
 
-    public function setStatus(Status $status): static
+    public function setStatus(StatusEnum $status): static
     {
         $this->status = $status;
 

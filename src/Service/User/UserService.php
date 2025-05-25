@@ -3,7 +3,7 @@
 namespace App\Service\User;
 
 use App\Entity\User\User;
-use App\Enum\Shared\Status;
+use App\Enum\Shared\StatusEnum;
 use App\Repository\UserRepository;
 use DomainException;
 
@@ -17,11 +17,11 @@ class UserService
 
     public function markAsDeleted(User $user): void
     {
-        if ($user->getStatus() === Status::DELETED) {
+        if ($user->getStatus() === StatusEnum::DELETED) {
             throw new DomainException("Пользователь {$user->getId()} уже удален.");
         }
 
-        $user->setStatus(Status::DELETED);
+        $user->setStatus(StatusEnum::DELETED);
         $this->userRepository->save($user);
     }
 }

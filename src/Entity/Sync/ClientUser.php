@@ -2,7 +2,7 @@
 
 namespace App\Entity\Sync;
 
-use App\Enum\Shared\Status;
+use App\Enum\Shared\StatusEnum;
 use App\Repository\ClientUserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -33,8 +33,8 @@ class ClientUser
     #[ORM\Column(type: 'string', length: 100, nullable: true)]
     private ?string $telegram = null;
 
-    #[ORM\Column(type: 'string', length: 20, enumType: Status::class)]
-    private ?Status $status = null;
+    #[ORM\Column(type: 'string', length: 20, enumType: StatusEnum::class)]
+    private ?StatusEnum $status = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $createdAt = null;
@@ -118,12 +118,12 @@ class ClientUser
         return $this;
     }
 
-    public function getStatus(): ?Status
+    public function getStatus(): ?StatusEnum
     {
         return $this->status;
     }
 
-    public function setStatus(Status $status): static
+    public function setStatus(StatusEnum $status): static
     {
         $this->status = $status;
 

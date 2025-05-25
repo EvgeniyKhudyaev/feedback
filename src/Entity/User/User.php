@@ -5,8 +5,8 @@ namespace App\Entity\User;
 use App\Entity\Feedback\FeedbackFieldAnswer;
 use App\Entity\Feedback\FeedbackManager;
 use App\Entity\Shared\File;
-use App\Enum\Shared\Status;
-use App\Enum\UserRole;
+use App\Enum\Shared\StatusEnum;
+use App\Enum\UserRoleEnum;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -51,11 +51,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 //    #[ORM\Column(type: 'string', length: 50, enumType: UserRole::class)]
 //    private ?UserRole $role;
 
-    #[ORM\Column(type: 'string', length: 50, enumType: UserRole::class)]
-    private ?UserRole $role;
+    #[ORM\Column(type: 'string', length: 50, enumType: UserRoleEnum::class)]
+    private ?UserRoleEnum $role;
 
-    #[ORM\Column(type: 'string', length: 20, enumType: Status::class)]
-    private ?Status $status;
+    #[ORM\Column(type: 'string', length: 20, enumType: StatusEnum::class)]
+    private ?StatusEnum $status;
 
     #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     private bool $isVerified = false;
@@ -87,7 +87,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __construct()
     {
         $this->uuid = Guid::uuid4()->toString();
-        $this->status = Status::ACTIVE;
+        $this->status = StatusEnum::ACTIVE;
         $this->files = new ArrayCollection();
         $this->feedbackFieldValues = new ArrayCollection();
         $this->feedbackEditors = new ArrayCollection();
@@ -182,24 +182,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getRole(): ?UserRole
+    public function getRole(): ?UserRoleEnum
     {
         return $this->role;
     }
 
-    public function setRole(UserRole $role): static
+    public function setRole(UserRoleEnum $role): static
     {
         $this->role = $role;
 
         return $this;
     }
 
-    public function getStatus(): ?Status
+    public function getStatus(): ?StatusEnum
     {
         return $this->status;
     }
 
-    public function setStatus(Status $status): static
+    public function setStatus(StatusEnum $status): static
     {
         $this->status = $status;
 
@@ -232,7 +232,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        return [$this->role->value ?? UserRole::MEMBER->value];
+        return [$this->role->value ?? UserRoleEnum::MEMBER->value];
     }
 
     public function eraseCredentials(): void

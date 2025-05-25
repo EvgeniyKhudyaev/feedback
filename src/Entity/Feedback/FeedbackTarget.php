@@ -2,7 +2,7 @@
 
 namespace App\Entity\Feedback;
 
-use App\Enum\Feedback\FeedbackTargetType;
+use App\Enum\Feedback\FeedbackTargetTypeEnum;
 use App\Repository\FeedbackTargetRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -18,8 +18,8 @@ class FeedbackTarget
     #[ORM\JoinColumn(nullable: false)]
     private ?Feedback $feedback = null;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: FeedbackTargetType::class)]
-    private ?FeedbackTargetType $targetType = null;
+    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: FeedbackTargetTypeEnum::class)]
+    private ?FeedbackTargetTypeEnum $targetType = null;
 
     #[ORM\Column(type: 'integer', nullable: false)]
     private ?int $target = null;
@@ -50,12 +50,12 @@ class FeedbackTarget
         return $this;
     }
 
-    public function getTargetType(): ?FeedbackTargetType
+    public function getTargetType(): ?FeedbackTargetTypeEnum
     {
         return $this->targetType;
     }
 
-    public function setTargetType(FeedbackTargetType $targetType): static
+    public function setTargetType(FeedbackTargetTypeEnum $targetType): static
     {
         $this->targetType = $targetType;
 

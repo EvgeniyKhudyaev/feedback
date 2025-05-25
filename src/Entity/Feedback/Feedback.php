@@ -2,14 +2,15 @@
 
 namespace App\Entity\Feedback;
 
-use App\Enum\Feedback\FeedbackScope;
-use App\Enum\Feedback\FeedbackType;
-use App\Enum\Shared\Status;
+use App\Enum\Feedback\FeedbackScopeEnum;
+use App\Enum\Feedback\FeedbackTypeEnum;
+use App\Enum\Shared\StatusEnum;
 use App\Repository\FeedbackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Ramsey\Uuid\Guid\Guid;
 
 #[ORM\Entity(repositoryClass: FeedbackRepository::class)]
 #[ORM\Table(name: '`feedback`')]
@@ -26,14 +27,14 @@ class Feedback
     #[ORM\Column(length: 255, unique: true, nullable: false)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: FeedbackType::class)]
-    private ?FeedbackType $type = null;
+    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: FeedbackTypeEnum::class)]
+    private ?FeedbackTypeEnum $type = null;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: FeedbackScope::class)]
-    private ?FeedbackScope $scope = null;
+    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: FeedbackScopeEnum::class)]
+    private ?FeedbackScopeEnum $scope = null;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: Status::class)]
-    private ?Status $status = null;
+    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: StatusEnum::class)]
+    private ?StatusEnum $status = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $createdAt = null;
@@ -45,7 +46,7 @@ class Feedback
      * @var Collection<int, FeedbackField>
      */
     #[ORM\OneToMany(targetEntity: FeedbackField::class, mappedBy: 'feedback', orphanRemoval: true)]
-    private Collection $feedbackFields;
+    private Collection $fields;
 
     /**
      * @var Collection<int, FeedbackManager>
@@ -61,7 +62,11 @@ class Feedback
 
     public function __construct()
     {
-        $this->feedbackFields = new ArrayCollection();
+        $this->uuid = Guid::uuid4()->toString();
+        $this->type = FeedbackTypeEnum::SURVEY;
+        $this->scope = FeedbackScopeEnum::GLOBAL;
+        $this->status = StatusEnum::ACTIVE;
+        $this->fields = new ArrayCollection();
         $this->feedbackEditors = new ArrayCollection();
         $this->feedbackTargets = new ArrayCollection();
     }
@@ -95,36 +100,36 @@ class Feedback
         return $this;
     }
 
-    public function getType(): ?FeedbackType
+    public function getType(): ?FeedbackTypeEnum
     {
         return $this->type;
     }
 
-    public function setType(FeedbackType $type): static
+    public function setType(FeedbackTypeEnum $type): static
     {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getScope(): ?FeedbackScope
+    public function getScope(): ?FeedbackScopeEnum
     {
         return $this->scope;
     }
 
-    public function setScope(FeedbackScope $scope): static
+    public function setScope(FeedbackScopeEnum $scope): static
     {
         $this->scope = $scope;
 
         return $this;
     }
 
-    public function getStatus(): ?Status
+    public function getStatus(): ?StatusEnum
     {
         return $this->status;
     }
 
-    public function setStatus(Status $status): static
+    public function setStatus(StatusEnum $status): static
     {
         $this->status = $status;
 
@@ -158,24 +163,35 @@ class Feedback
     /**
      * @return Collection<int, FeedbackField>
      */
-    public function getFeedbackFields(): Collection
+    public function getFields(): Collection
     {
-        return $this->feedbackFields;
+        return $this->fields;
     }
 
-    public function addFeedbackField(FeedbackField $feedbackField): static
+//    public function setFields(Collection $fields): static
+//    {
+//        $this->fields = $fields;
+//
+//        foreach ($fields as $field) {
+//            $field->setFeedback($this);
+//        }
+//
+//        return $this;
+//    }
+
+    public function addField(FeedbackField $feedbackField): static
     {
-        if (!$this->feedbackFields->contains($feedbackField)) {
-            $this->feedbackFields->add($feedbackField);
+        if (!$this->fields->contains($feedbackField)) {
+            $this->fields->add($feedbackField);
             $feedbackField->setFeedback($this);
         }
 
         return $this;
     }
 
-    public function removeFeedbackField(FeedbackField $feedbackField): static
+    public function removeField(FeedbackField $feedbackField): static
     {
-        if ($this->feedbackFields->removeElement($feedbackField)) {
+        if ($this->fields->removeElement($feedbackField)) {
             // set the owning side to null (unless already changed)
             if ($feedbackField->getFeedback() === $this) {
                 $feedbackField->setFeedback(null);

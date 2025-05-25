@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/admin/users')]
-final class UsersController extends AbstractController
+final class UserController extends AbstractController
 {
     public function __construct(
         private readonly UserRepository $userRepository,
@@ -21,7 +21,7 @@ final class UsersController extends AbstractController
     {
     }
 
-    #[Route('/', name: 'admin_users_index')]
+    #[Route('/', name: 'admin_user_index')]
     public function index(): Response
     {
         $users = $this->userRepository->findAll();
@@ -71,7 +71,7 @@ final class UsersController extends AbstractController
         if (!$this->isCsrfTokenValid('delete_user_' . $user->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Ошибка проверки безопасности.');
 
-            return $this->redirectToRoute('admin_users_index');
+            return $this->redirectToRoute('admin_user_index');
         }
 
         try {
@@ -87,6 +87,6 @@ final class UsersController extends AbstractController
             // $this->logger->error($e->getMessage(), ['exception' => $e]);
         }
 
-        return $this->redirectToRoute('admin_users_index');
+        return $this->redirectToRoute('admin_user_index');
     }
 }

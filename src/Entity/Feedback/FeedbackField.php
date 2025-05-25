@@ -3,7 +3,7 @@
 namespace App\Entity\Feedback;
 
 use App\Enum\Feedback\FeedbackFieldType;
-use App\Enum\Shared\Status;
+use App\Enum\Shared\StatusEnum;
 use App\Repository\FeedbackFieldRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -43,8 +43,8 @@ class FeedbackField
     #[ORM\Column(type: 'boolean', nullable: false)]
     private ?bool $isHiddenByDefault = null;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: Status::class)]
-    private ?Status $status;
+    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: StatusEnum::class)]
+    private ?StatusEnum $status;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $createdAt = null;
@@ -62,7 +62,7 @@ class FeedbackField
      * @var Collection<int, FeedbackFieldOption>
      */
     #[ORM\OneToMany(targetEntity: FeedbackFieldOption::class, mappedBy: 'field')]
-    private Collection $feedbackFieldOptions;
+    private Collection $options;
 
     /**
      * @var Collection<int, FeedbackFieldDependence>
@@ -73,7 +73,7 @@ class FeedbackField
     public function __construct()
     {
         $this->feedbackFieldValues = new ArrayCollection();
-        $this->feedbackFieldOptions = new ArrayCollection();
+        $this->options = new ArrayCollection();
         $this->feedbackFieldDependences = new ArrayCollection();
     }
 
@@ -178,12 +178,12 @@ class FeedbackField
         return $this;
     }
 
-    public function getStatus(): ?Status
+    public function getStatus(): ?StatusEnum
     {
         return $this->status;
     }
 
-    public function setStatus(Status $status): static
+    public function setStatus(StatusEnum $status): static
     {
         $this->status = $status;
 
@@ -247,24 +247,24 @@ class FeedbackField
     /**
      * @return Collection<int, FeedbackFieldOption>
      */
-    public function getFeedbackFieldOptions(): Collection
+    public function getOptions(): Collection
     {
-        return $this->feedbackFieldOptions;
+        return $this->options;
     }
 
-    public function addFeedbackFieldOption(FeedbackFieldOption $feedbackFieldOption): static
+    public function addOption(FeedbackFieldOption $feedbackFieldOption): static
     {
-        if (!$this->feedbackFieldOptions->contains($feedbackFieldOption)) {
-            $this->feedbackFieldOptions->add($feedbackFieldOption);
+        if (!$this->options->contains($feedbackFieldOption)) {
+            $this->options->add($feedbackFieldOption);
             $feedbackFieldOption->setField($this);
         }
 
         return $this;
     }
 
-    public function removeFeedbackFieldOption(FeedbackFieldOption $feedbackFieldOption): static
+    public function removeOption(FeedbackFieldOption $feedbackFieldOption): static
     {
-        if ($this->feedbackFieldOptions->removeElement($feedbackFieldOption)) {
+        if ($this->options->removeElement($feedbackFieldOption)) {
             // set the owning side to null (unless already changed)
             if ($feedbackFieldOption->getField() === $this) {
                 $feedbackFieldOption->setField(null);

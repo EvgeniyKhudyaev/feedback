@@ -3,7 +3,7 @@
 namespace App\Form\User;
 
 use App\Entity\User\User;
-use App\Enum\UserRole;
+use App\Enum\UserRoleEnum;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
@@ -28,7 +28,7 @@ class UserRegistrationType extends AbstractType
             ])
             ->add('role', ChoiceType::class, [
                 'label' => 'Роль',
-                'choices' => UserRole::getChoices(),
+                'choices' => UserRoleEnum::getChoices(),
                 'expanded' => false,
                 'multiple' => false,
             ])
