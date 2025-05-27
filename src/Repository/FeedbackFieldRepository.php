@@ -16,6 +16,14 @@ class FeedbackFieldRepository extends ServiceEntityRepository
         parent::__construct($registry, FeedbackField::class);
     }
 
+    public function findAllOrdered(): array
+    {
+        return $this->createQueryBuilder('f')
+            ->orderBy('f.sortOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return FeedbackField[] Returns an array of FeedbackField objects
     //     */

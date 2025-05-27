@@ -61,6 +61,9 @@ class Feedback
     #[ORM\OneToMany(targetEntity: FeedbackTarget::class, mappedBy: 'feedback')]
     private Collection $feedbackTargets;
 
+    #[ORM\OneToMany(targetEntity: FeedbackField::class, mappedBy: 'feedback')]
+    private Collection $feedbackFields;
+
     public function __construct()
     {
         $this->uuid = Guid::uuid4()->toString();
@@ -70,6 +73,7 @@ class Feedback
         $this->fields = new ArrayCollection();
         $this->feedbackEditors = new ArrayCollection();
         $this->feedbackTargets = new ArrayCollection();
+        $this->feedbackFields = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -250,6 +254,33 @@ class Feedback
             // set the owning side to null (unless already changed)
             if ($feedbackTarget->getFeedback() === $this) {
                 $feedbackTarget->setFeedback(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getFeedbackFields(): Collection
+    {
+        return $this->feedbackFields;
+    }
+
+    public function addFeedbackFields(FeedbackTarget $feedbackFields): static
+    {
+        if (!$this->feedbackFields->contains($feedbackFields)) {
+            $this->feedbackFields->add($feedbackFields);
+            $feedbackFields->setFeedback($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFeedbackFields(FeedbackTarget $feedbackFields): static
+    {
+        if ($this->feedbackFields->removeElement($feedbackFields)) {
+            // set the owning side to null (unless already changed)
+            if ($feedbackFields->getFeedback() === $this) {
+                $feedbackFields->setFeedback(null);
             }
         }
 

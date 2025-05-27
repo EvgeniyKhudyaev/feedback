@@ -303,4 +303,9 @@ class FeedbackField
 
         return $this;
     }
+
+    public function hasOptions(): bool
+    {
+        return !$this->options->isEmpty();
+    }
 }

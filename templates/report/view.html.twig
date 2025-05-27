@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Отчет по форме: {{ feedback.name }}{% endblock %}
+
+{% block body %}
+    <h1>Отчет: {{ feedback.name }}</h1>
+
+    <a href="{{ path('report_view', {feedback: feedback.id, export: 'excel'}) }}" class="btn btn-success mb-3">
+        Скачать Excel
+    </a>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Дата</th>
+            {% for field in fields %}
+                <th>{{ field.label }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for submissionId, answerRow in answers %}
+            <tr>
+                <td>{{ submissionId }}</td>
+                <td>{{ answerRow[fields[0].label][1]|date('Y-m-d H:i') }}</td>
+                {% for field in fields %}
+                    <td>{{ answerRow[field.label][0]|default('—') }}</td>
+                {% endfor %}
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="{{ fields|length + 1 }}">Данных нет</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

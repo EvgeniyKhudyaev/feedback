@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Список отчетов{% endblock %}
+
+{% block body %}
+    <h1>Доступные отчеты</h1>
+
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Название формы</th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for feedback in feedbackForms %}
+            <tr>
+                <td>{{ feedback.id }}</td>
+                <td>{{ feedback.name }}</td>
+                <td>
+                    <a href="{{ path('report_view', { feedback: feedback.id }) }}" class="btn btn-primary btn-sm">Просмотр отчёта</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">Отчеты не найдены</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
