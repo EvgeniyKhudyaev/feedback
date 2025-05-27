@@ -2,24 +2,30 @@
 
 namespace App\Entity\Feedback;
 
-use App\Entity\User\User;
+use App\Entity\User;
 use App\Repository\FeedbackEditorRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FeedbackEditorRepository::class)]
+#[ORM\Table(name: 'feedback_manager', uniqueConstraints: [
+    new ORM\UniqueConstraint(name: 'uniq_feedback_editor', columns: ['feedback_id', 'editor_id'])
+])]
 class FeedbackManager
 {
+    public const STATUS_ACTIVE = true;
+    public const STATUS_INACTIVE = false;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'feedbackEditors')]
+    #[ORM\ManyToOne(targetEntity: Feedback::class, inversedBy: 'feedbackEditors')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Feedback $feedback = null;
 
-    #[ORM\ManyToOne(inversedBy: 'feedbackEditors')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'feedbackEditors')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $editor = null;
 
@@ -95,5 +101,15 @@ class FeedbackManager
         $this->updatedAt = $updatedAt;
 
         return $this;
+    }
+
+    public static function create(User $user, Feedback $feedback): static
+    {
+        $feedbackManager = new static();
+        $feedbackManager->setEditor($user);
+        $feedbackManager->setFeedback($feedback);
+        $feedbackManager->setIsActive(static::STATUS_ACTIVE);
+
+        return $feedbackManager;
     }
 }

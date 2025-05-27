@@ -2,7 +2,7 @@
 
 namespace App\Entity\Feedback;
 
-use App\Enum\Feedback\FeedbackFieldType;
+use App\Enum\Feedback\FeedbackFieldTypeEnum;
 use App\Enum\Shared\StatusEnum;
 use App\Repository\FeedbackFieldRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -31,8 +31,8 @@ class FeedbackField
     #[ORM\Column(type: 'string', length: 255, nullable: false)]
     private ?string $label = null;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: FeedbackFieldType::class)]
-    private ?FeedbackFieldType $type = null;
+    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: FeedbackFieldTypeEnum::class)]
+    private ?FeedbackFieldTypeEnum $type = null;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
     private ?bool $required = null;
@@ -130,12 +130,12 @@ class FeedbackField
         return $this;
     }
 
-    public function getType(): ?FeedbackFieldType
+    public function getType(): ?FeedbackFieldTypeEnum
     {
         return $this->type;
     }
 
-    public function setType(FeedbackFieldType $type): static
+    public function setType(FeedbackFieldTypeEnum $type): static
     {
         $this->type = $type;
 

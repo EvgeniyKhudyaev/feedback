@@ -11,6 +11,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Guid\Guid;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: FeedbackRepository::class)]
 #[ORM\Table(name: '`feedback`')]
@@ -168,17 +169,6 @@ class Feedback
         return $this->fields;
     }
 
-//    public function setFields(Collection $fields): static
-//    {
-//        $this->fields = $fields;
-//
-//        foreach ($fields as $field) {
-//            $field->setFeedback($this);
-//        }
-//
-//        return $this;
-//    }
-
     public function addField(FeedbackField $feedbackField): static
     {
         if (!$this->fields->contains($feedbackField)) {
@@ -207,6 +197,11 @@ class Feedback
     public function getFeedbackEditors(): Collection
     {
         return $this->feedbackEditors;
+    }
+
+    public function getActiveFeedbackEditors(): Collection
+    {
+        return $this->feedbackEditors->filter(fn(FeedbackManager $editor) => $editor->getIsActive());
     }
 
     public function addFeedbackEditor(FeedbackManager $feedbackEditor): static
@@ -259,5 +254,12 @@ class Feedback
         }
 
         return $this;
+    }
+
+    public function hasEditor(UserInterface $user): bool
+    {
+        return $this->getActiveFeedbackEditors()->exists(
+            fn($key, $fm) => $fm->getEditor() === $user
+        );
     }
 }

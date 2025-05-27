@@ -2,7 +2,7 @@
 
 namespace App\Entity\Shared;
 
-use App\Entity\User\User;
+use App\Entity\User;
 use App\Repository\FileRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;

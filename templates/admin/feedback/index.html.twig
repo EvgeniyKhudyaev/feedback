@@ -12,52 +12,63 @@
                 <thead class="table-dark align-middle">
                 <tr>
                     <th style="width: 80px;">
-                        {{ table.sortable_column('ID', 'f.id', sort, direction, 'admin_feedback_index') }}
+                        {{ table.sortable_column('ID', 'f.id', sort.field, sort.direction, 'admin_feedback_index') }}
                     </th>
                     <th>
-                        {{ table.sortable_column('Имя', 'f.name', sort, direction, 'admin_feedback_index') }}
+                        {{ table.sortable_column('Имя', 'f.name', sort.field, sort.direction, 'admin_feedback_index') }}
                     </th>
                     <th>
-                        {{ table.sortable_column('Тип', 'f.type', sort, direction, 'admin_feedback_index') }}
+                        {{ table.sortable_column('Тип', 'f.type', sort.field, sort.direction, 'admin_feedback_index') }}
                     </th>
                     <th>
-                        {{ table.sortable_column('Область', 'f.scope', sort, direction, 'admin_feedback_index') }}
+                        {{ table.sortable_column('Область', 'f.scope', sort.field, sort.direction, 'admin_feedback_index') }}
                     </th>
                     <th>
-                        {{ table.sortable_column('Статус', 'f.status', sort, direction, 'admin_feedback_index') }}
+                        {{ table.sortable_column('Статус', 'f.status', sort.field, sort.direction, 'admin_feedback_index') }}
                     </th>
                     <th>
-                        {{ table.sortable_column('Дата создания', 'f.createdAt', sort, direction, 'admin_feedback_index') }}
+                        {{ table.sortable_column('Дата создания', 'f.createdAt', sort.field, sort.direction, 'admin_feedback_index') }}
                     </th>
                     <th>
-                        {{ table.sortable_column('Дата обновления', 'f.updatedAt', sort, direction, 'admin_feedback_index') }}
+                        {{ table.sortable_column('Дата обновления', 'f.updatedAt', sort.field, sort.direction, 'admin_feedback_index') }}
                     </th>
                 </tr>
                 <tr>
                     <th>
-                        {{ table.filter_input('filter_id_id', 'filter_id', filterId, 'ID', 'auto-submit') }}
+                        {{ table.filter_input('filter_id_id', 'filter_id', filters.id, 'ID', 'auto-submit') }}
                     </th>
                     <th>
-                        {{ table.filter_input('filter_name_id', 'filter_name', filterName, 'Фильтр по имени', 'auto-submit') }}
+                        {{ table.filter_input('filter_name_id', 'filter_name', filters.name, 'Фильтр по имени', 'auto-submit') }}
                     </th>
                     <th>
-                        {{ table.filter_select('filter_type_id', 'filter_type', types, filterType, 'Фильтр по типу', 'auto-submit') }}
+                        {{ table.filter_select('filter_type_id', 'filter_type', types, filters.type, 'Фильтр по типу', 'auto-submit') }}
                     </th>
                     <th>
-                        {{ table.filter_select('filter_scope_id', 'filter_scope', scopes, filterScope, 'Фильтр по области', 'auto-submit') }}
+                        {{ table.filter_select('filter_scope_id', 'filter_scope', scopes, filters.scope, 'Фильтр по области', 'auto-submit') }}
                     </th>
                     <th>
-                        {{ table.filter_select('filter_status_id', 'filter_status', statuses, filterStatus, 'Фильтр по статусу', 'auto-submit') }}
+                        {{ table.filter_select('filter_status_id', 'filter_status', statuses, filters.status, 'Фильтр по статусу', 'auto-submit') }}
                     </th>
-{#                    <th>#}
-{#                        {{ table.filter_date(#}
-{#                            'filter_created_from', 'filter_created_from', filterCreatedFrom,#}
-{#                            'filter_created_to', 'filter_created_to', filterCreatedTo,#}
-{#                            'Дата создания от', 'Дата создания до'#}
-{#                        ) }}#}
-{#                    </th>#}
-                    <th></th>
-                    <th></th>
+                    <th>
+                        {{ table.filter_date({
+                            idFrom: 'filter_created_from',
+                            nameFrom: 'filter_created_from',
+                            valueFrom: filters.createdFrom ? filters.createdFrom|date('Y-m-d') : '',
+                            idTo: 'filter_created_to',
+                            nameTo: 'filter_created_to',
+                            valueTo: filters.createdTo ? filters.createdTo|date('Y-m-d') : ''
+                        }) }}
+                    </th>
+                    <th>
+                        {{ table.filter_date({
+                            idFrom: 'filter_updated_from',
+                            nameFrom: 'filter_updated_from',
+                            valueFrom: filters.updatedFrom ? filters.updatedFrom|date('Y-m-d') : '',
+                            idTo: 'filter_updated_to',
+                            nameTo: 'filter_updated_to',
+                            valueTo: filters.updatedTo ? filters.updatedTo|date('Y-m-d') : ''
+                        }) }}
+                    </th>
                 </tr>
                 </thead>
                 <tbody>

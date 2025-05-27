@@ -2,7 +2,8 @@
 
 namespace App\Repository;
 
-use App\Entity\User\User;
+use App\Entity\User;
+use App\Enum\UserRoleEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -46,4 +47,12 @@ class UserRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+    public function findByRole(UserRoleEnum $role): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.role = :role')
+            ->setParameter('role', $role->value)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -45,25 +45,27 @@
     </select>
 {% endmacro %}
 
-{% macro filter_date(idFrom, nameFrom, valueFrom, idTo, nameTo, valueTo, labelFrom='Дата от', labelTo='Дата до', extraClass='auto-submit') %}
+{% macro filter_date(params) %}
     <div class="d-flex flex-column">
         <input
                 type="date"
-                id="{{ idFrom }}"
-                name="{{ nameFrom }}"
-                value="{{ valueFrom|default('') }}"
-                class="form-control form-control-sm mb-1 {{ extraClass }}"
-                aria-label="{{ labelFrom }}"
-                placeholder="{{ labelFrom }}"
+                id="{{ params.idFrom }}"
+                name="{{ params.nameFrom }}"
+                value="{{ params.valueFrom|default('') }}"
+                class="form-control form-control-sm mb-1 {{ params.extraClass|default('') }}"
+                aria-label="{{ params.labelFrom|default('Дата от') }}"
+                placeholder="{{ params.labelFrom|default('Дата от') }}"
+                onchange="this.form.submit()"
         >
         <input
                 type="date"
-                id="{{ idTo }}"
-                name="{{ nameTo }}"
-                value="{{ valueTo|default('') }}"
-                class="form-control form-control-sm {{ extraClass }}"
-                aria-label="{{ labelTo }}"
-                placeholder="{{ labelTo }}"
+                id="{{ params.idTo }}"
+                name="{{ params.nameTo }}"
+                value="{{ params.valueTo|default('') }}"
+                class="form-control form-control-sm {{ params.extraClass|default('') }}"
+                aria-label="{{ params.labelTo|default('Дата до') }}"
+                placeholder="{{ params.labelTo|default('Дата до') }}"
+                onchange="this.form.submit()"
         >
     </div>
 {% endmacro %}

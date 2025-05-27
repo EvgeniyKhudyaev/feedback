@@ -1,0 +1,27 @@
+<form id="managersForm" method="post" action="{{ path('admin_feedback_manage_editors', {'id': feedback.id}) }}">
+    <div class="modal-header">
+        <h5 class="modal-title" id="managersModalLabel">Назначение менеджеров для отзыва {{ feedback.name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+    </div>
+    <div class="modal-body">
+        <label for="managers" class="form-label">Выберите менеджеров:</label>
+        <select id="managers" name="managers[]" class="form-select" multiple size="10">
+            {% for manager in managers %}
+                <option value="{{ manager.id }}"
+                        {% for fe in feedback.activeFeedbackEditors %}
+                            {% if fe.editor.id == manager.id %}
+                                selected
+                            {% endif %}
+                        {% endfor %}
+                >
+                    {{ manager.name }} ({{ manager.email }})
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="submit" class="btn btn-success">Сохранить</button>
+    </div>
+</form>
+

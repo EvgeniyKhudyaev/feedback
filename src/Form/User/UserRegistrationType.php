@@ -2,7 +2,7 @@
 
 namespace App\Form\User;
 
-use App\Entity\User\User;
+use App\Entity\User;
 use App\Enum\UserRoleEnum;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;

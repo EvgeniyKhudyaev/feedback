@@ -2,7 +2,7 @@
 
 namespace App\Enum\Feedback;
 
-enum FeedbackFieldType: string
+enum FeedbackFieldTypeEnum: string
 {
     case INPUT = 'input';
     case TEXTAREA = 'textarea';
@@ -11,6 +11,7 @@ enum FeedbackFieldType: string
     case RADIO = 'radio';
     case MULTISELECT = 'multiselect';
     case RATING = 'rating';
+    case FILE = 'file';
 
     public static function getChoices(): array
     {
@@ -21,7 +22,8 @@ enum FeedbackFieldType: string
             'Список' => self::SELECT,
             'Радио' => self::RADIO,
             'Множественный список' => self::MULTISELECT,
-            'Рейтинг' =>  self::RATING,
+            'Рейтинг' => self::RATING,
+            'Файл' => self::FILE,
         ];
     }
 }

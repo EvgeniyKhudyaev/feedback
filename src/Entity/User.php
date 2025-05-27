@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\User;
+namespace App\Entity;
 
 use App\Entity\Feedback\FeedbackFieldAnswer;
 use App\Entity\Feedback\FeedbackManager;

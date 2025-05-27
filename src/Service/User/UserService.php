@@ -2,7 +2,7 @@
 
 namespace App\Service\User;
 
-use App\Entity\User\User;
+use App\Entity\User;
 use App\Enum\Shared\StatusEnum;
 use App\Repository\UserRepository;
 use DomainException;

@@ -1,0 +1,117 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Опрос №{{ feedback.id }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-0">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ path('admin_feedback_index') }}">Список опросов</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    Отзыв {{ feedback.id }}
+                </li>
+            </ol>
+        </nav>
+
+        <h1 class="mb-4">Опрос: {{ feedback.name }}</h1>
+
+        <div class="mb-4">
+            <a href="{{ path('admin_feedback_edit', {id: feedback.id}) }}" class="btn btn-primary me-2">
+                Редактировать
+            </a>
+
+            <button type="button" class="btn btn-secondary" id="loadManagersModal" data-id="{{ feedback.id }}" data-bs-toggle="modal" data-bs-target="#managersModal">
+                Менеджеры
+            </button>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">Основная информация</div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">ID:</dt>
+                    <dd class="col-sm-9">{{ feedback.id }}</dd>
+
+                    <dt class="col-sm-3">UUID:</dt>
+                    <dd class="col-sm-9">{{ feedback.uuid }}</dd>
+
+                    <dt class="col-sm-3">Тип:</dt>
+                    <dd class="col-sm-9">{{ types[feedback.type.value] }}</dd>
+
+                    <dt class="col-sm-3">Область:</dt>
+                    <dd class="col-sm-9">{{ scopes[feedback.scope.value] }}</dd>
+
+                    <dt class="col-sm-3">Статус:</dt>
+                    <dd class="col-sm-9">{{ statuses[feedback.status.value] }}</dd>
+
+                    <dt class="col-sm-3">Дата создания:</dt>
+                    <dd class="col-sm-9">{{ feedback.createdAt ? feedback.createdAt|date('Y-m-d H:i:s') : 'N/A' }}</dd>
+
+                    <dt class="col-sm-3">Дата обновления:</dt>
+                    <dd class="col-sm-9">{{ feedback.updatedAt ? feedback.updatedAt|date('Y-m-d H:i:s') : 'N/A' }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">Менеджеры</div>
+            <div class="card-body">
+                {% if feedback.activeFeedbackEditors is not empty %}
+                    <ul class="list-group" id="managersList">
+                        {% for manager in feedback.activeFeedbackEditors %}
+                            <li class="list-group-item">
+                                <a href="{{ path('admin_user_view', { id: manager.editor.id }) }}">
+                                    {{ manager.editor.name }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Менеджеры не назначены.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">Связи</div>
+            <div class="card-body">
+                {% if feedback.fields is not empty %}
+                    <ul class="list-group">
+                        {% for field in feedback.fields %}
+                            <li class="list-group-item d-flex justify-content-between">
+                                <strong>{{ field.name }}</strong>
+                                <span>{{ field.value }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Нет связей.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="modal fade" id="managersModal" tabindex="-1" aria-labelledby="managersModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content" id="managersModalContent">
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <script>
+        window.csrfToken = '{{ csrf_token('feedback_manage_editors') }}';
+    </script>
+    <script src="{{ asset('js/managers-modal.js') }}"></script>
+{% endblock %}

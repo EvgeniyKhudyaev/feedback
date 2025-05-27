@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250525153054 extends AbstractMigration
+final class Version20250527154650 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -81,7 +81,7 @@ final class Version20250525153054 extends AbstractMigration
         $this->addSql('CREATE TRIGGER notify_trigger AFTER INSERT OR UPDATE ON messenger_messages FOR EACH ROW EXECUTE PROCEDURE notify_messenger_messages();');
         $this->addSql('ALTER TABLE feedback_field ADD CONSTRAINT FK_CF54DC3DD249A887 FOREIGN KEY (feedback_id) REFERENCES "feedback" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE feedback_field_answer ADD CONSTRAINT FK_6C1B223B443707B0 FOREIGN KEY (field_id) REFERENCES feedback_field (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
-        $this->addSql('ALTER TABLE feedback_field_answer ADD CONSTRAINT FK_6C1B223B37395ADB FOREIGN KEY (responder_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('ALTER TABLE feedback_field_answer ADD CONSTRAINT FK_6C1B223B37395ADB FOREIGN KEY (responder_id) REFERENCES "client_user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE feedback_field_dependence ADD CONSTRAINT FK_72F9D50F7173162 FOREIGN KEY (source_field_id) REFERENCES feedback_field (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE feedback_field_dependence ADD CONSTRAINT FK_72F9D50FCF5A8EA1 FOREIGN KEY (source_option_id) REFERENCES feedback_field_option (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE feedback_field_dependence ADD CONSTRAINT FK_72F9D50F9E9CD7D9 FOREIGN KEY (target_field_id) REFERENCES feedback_field (id) NOT DEFERRABLE INITIALLY IMMEDIATE');

@@ -2,7 +2,8 @@
 
 namespace App\Entity\Feedback;
 
-use App\Entity\User\User;
+use App\Entity\Sync\ClientUser;
+use App\Entity\User;
 use App\Repository\FeedbackFieldValueRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -24,7 +25,7 @@ class FeedbackFieldAnswer
 
     #[ORM\ManyToOne(inversedBy: 'feedbackFieldValues')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $responder = null;
+    private ?ClientUser $responder = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $createdAt = null;
@@ -61,12 +62,12 @@ class FeedbackFieldAnswer
         return $this;
     }
 
-    public function getResponder(): ?User
+    public function getResponder(): ?ClientUser
     {
         return $this->responder;
     }
 
-    public function setResponder(?User $responder): static
+    public function setResponder(?ClientUser $responder): static
     {
         $this->responder = $responder;
 

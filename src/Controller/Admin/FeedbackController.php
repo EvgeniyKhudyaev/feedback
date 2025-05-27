@@ -2,109 +2,97 @@
 
 namespace App\Controller\Admin;
 
+use App\DTO\Feedback\FeedbackFilterDto;
+use App\DTO\Feedback\FeedbackSortDto;
 use App\Entity\Feedback\Feedback;
-use App\Entity\Feedback\FeedbackField;
 use App\Enum\Feedback\FeedbackScopeEnum;
 use App\Enum\Feedback\FeedbackTypeEnum;
 use App\Enum\Shared\StatusEnum;
+use App\Enum\UserRoleEnum;
 use App\Form\Feedback\FeedbackType;
 use App\Repository\FeedbackRepository;
+use App\Repository\UserRepository;
+use App\Service\Feedback\FeedbackEditorManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin/feedbacks')]
 class FeedbackController extends AbstractController
 {
     public function __construct(
+        private readonly LoggerInterface $logger,
         private readonly FeedbackRepository $feedbackRepository,
+        private readonly UserRepository  $userRepository,
+        private readonly Security $security,
+        private readonly EntityManagerInterface $em,
     )
     {
     }
 
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[Route('/', name: 'admin_feedback_index')]
-    public function index(Request $request, EntityManagerInterface $em, PaginatorInterface $paginator): Response
+    public function index(Request $request, PaginatorInterface $paginator): Response
     {
-        $qb = $em->getRepository(Feedback::class)->createQueryBuilder('f');
-
-        // Фильтр по ID
-        $filterId = $request->query->get('filter_id');
-        if ($filterId) {
-            $qb->andWhere('f.id = :id')->setParameter('id', $filterId);
+        if (!$this->security->isGranted('ROLE_ADMIN') && !$this->security->isGranted('ROLE_MANAGER')) {
+            throw $this->createAccessDeniedException();
         }
 
-        // Фильтр по имени
-        $filterName = $request->query->get('filter_name');
-        if ($filterName) {
-            $qb->andWhere('f.name LIKE :name')->setParameter('name', '%'.$filterName.'%');
-        }
+        $filters = new FeedbackFilterDto($request->query->all());
+        $sort = new FeedbackSortDto($request->query->all());
+        $user = $this->security->getUser();
 
-        // Фильтр по типу
-        $filterType = $request->query->get('filter_type');
-        if ($filterType) {
-            $qb->andWhere('f.type = :type')->setParameter('type', $filterType);
-        }
+        $qb = $this->feedbackRepository->getFilteredQueryBuilder($filters);
+        $qb = $this->feedbackRepository->applySorting($qb, $sort);
+        $qb = $this->feedbackRepository->applyAccessCondition($qb, $user);
 
-        // Фильтр по области
-        $filterScope = $request->query->get('filter_scope');
-        if ($filterScope) {
-            $qb->andWhere('f.scope = :scope')->setParameter('scope', $filterScope);
-        }
-
-        // Фильтр по статусу
-        $filterStatus = $request->query->get('filter_status');
-        if ($filterStatus) {
-            $qb->andWhere('f.status = :status')->setParameter('status', $filterStatus);
-        }
-
-        // Сортировка
-        $sort = $request->query->get('sort', 'f.id');
-        $direction = strtoupper($request->query->get('direction', 'ASC'));
-        $direction = in_array($direction, ['ASC', 'DESC']) ? $direction : 'ASC';
-
-        // Допускаемые поля сортировки
-        $allowedSortFields = ['f.id', 'f.name', 'f.type', 'f.scope', 'f.status', 'f.createdAt', 'f.updatedAt'];
-        $sort = in_array($sort, $allowedSortFields) ? $sort : 'f.id';
-
-        $qb->orderBy($sort, $direction);
-
-        // Пагинация
         $pagination = $paginator->paginate(
             $qb,
             $request->query->getInt('page', 1),
             10
         );
-        
 
         return $this->render('admin/feedback/index.html.twig', [
             'pagination'    => $pagination,
-            'filterId'      => $filterId,
-            'filterName'    => $filterName,
-            'filterType'    => $filterType,
-            'filterScope'   => $filterScope,
-            'filterStatus'  => $filterStatus,
+            'filters'       => $filters,
             'sort'          => $sort,
-            'direction'     => $direction,
             'types'         => FeedbackTypeEnum::getChoices(),
             'scopes'        => FeedbackScopeEnum::getChoices(),
             'statuses'      => StatusEnum::getChoices(),
         ]);
     }
 
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[Route('/{id}', name: 'admin_feedback_view', requirements: ['id' => '\d+'])]
     public function view(Feedback $feedback): Response
     {
+        $user = $this->security->getUser();
+        if (!$this->security->isGranted('ROLE_ADMIN') && !$feedback->hasEditor($user)) {
+            throw $this->createAccessDeniedException();
+        }
+
         return $this->render('admin/feedback/view.html.twig', [
             'feedback' => $feedback,
+            'types' => FeedbackTypeEnum::getChoices(),
+            'scopes' => FeedbackScopeEnum::getChoices(),
+            'statuses' => StatusEnum::getChoices(),
         ]);
     }
 
-    #[Route('/new', name: 'admin_feedback_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $em): Response
+    #[Route('/create', name: 'admin_feedback_create', methods: ['GET', 'POST'])]
+    public function create(Request $request): Response
     {
+        if (!$this->security->isGranted('ROLE_ADMIN') && !$this->security->isGranted('ROLE_MANAGER')) {
+            throw $this->createAccessDeniedException();
+        }
+
         $feedback = new Feedback();
 
         $form = $this->createForm(FeedbackType::class, $feedback, [
@@ -113,15 +101,15 @@ class FeedbackController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($feedback);
-            $em->flush();
+            $this->em->persist($feedback);
+            $this->em->flush();
 
             $this->addFlash('success', 'Опрос успешно создан.');
 
             return $this->redirectToRoute('admin_feedback_index');
         }
 
-        return $this->render('admin/feedback/new.html.twig', [
+        return $this->render('admin/feedback/create.html.twig', [
             'form' => $form->createView(),
             'field_prototype' => $form->createView()->children['fields']->vars['prototype'],
         ]);
@@ -131,5 +119,48 @@ class FeedbackController extends AbstractController
     public function edit(Feedback $feedback): Response
     {
         // Редактирование опросника
+    }
+
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    #[Route('/{id}/editors', name: 'admin_feedback_manage_editors', methods: ['GET'])]
+    public function manageEditorsForm(Feedback $feedback): Response
+    {
+        $managers = $this->userRepository->findByRole(UserRoleEnum::MANAGER);
+
+        return $this->render('admin/feedback/_manage_editors_modal.html.twig', [
+            'feedback' => $feedback,
+            'managers' => $managers,
+        ]);
+    }
+
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    #[Route('/{id}/editors', name: 'admin_feedback_manage_editor', methods: ['POST'])]
+    public function manageEditorsSave(
+        Feedback               $feedback,
+        Request                $request,
+        FeedbackEditorManager  $editorManager,
+    ): Response
+    {
+        try {
+            $selectedUserIds = $request->request->all('managers');
+            $editorManager->updateEditors($feedback, $selectedUserIds);
+            $this->em->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'editors' => array_map(fn($editor) => [
+                    'id' => $editor->getId(),
+                    'name' => $editor->getEditor()->getName(),
+                ], $feedback->getActiveFeedbackEditors()->toArray()),
+            ]);
+        } catch (\Throwable $e) {
+            $this->logger->error('Ошибка сохранения менеджеров: ' . $e->getMessage(), ['exception' => $e]);
+
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Ошибка при сохранении. Попробуйте позже.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
