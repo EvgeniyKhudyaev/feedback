@@ -40,9 +40,6 @@ class FeedbackField
     #[ORM\Column(type: 'integer', nullable: false)]
     private ?int $sortOrder = null;
 
-    #[ORM\Column(type: 'boolean', nullable: false)]
-    private ?bool $isHiddenByDefault = null;
-
     #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: StatusEnum::class)]
     private ?StatusEnum $status;
 
@@ -64,17 +61,10 @@ class FeedbackField
     #[ORM\OneToMany(targetEntity: FeedbackFieldOption::class, mappedBy: 'field')]
     private Collection $options;
 
-    /**
-     * @var Collection<int, FeedbackFieldDependence>
-     */
-    #[ORM\OneToMany(targetEntity: FeedbackFieldDependence::class, mappedBy: 'sourceField')]
-    private Collection $feedbackFieldDependences;
-
     public function __construct()
     {
         $this->feedbackFieldValues = new ArrayCollection();
         $this->options = new ArrayCollection();
-        $this->feedbackFieldDependences = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -162,18 +152,6 @@ class FeedbackField
     public function setSortOrder(int $sortOrder): static
     {
         $this->sortOrder = $sortOrder;
-
-        return $this;
-    }
-
-    public function getIsHiddenByDefault(): ?bool
-    {
-        return $this->isHiddenByDefault;
-    }
-
-    public function setIsHiddenByDefault(bool $isHiddenByDefault): static
-    {
-        $this->isHiddenByDefault = $isHiddenByDefault;
 
         return $this;
     }
@@ -268,36 +246,6 @@ class FeedbackField
             // set the owning side to null (unless already changed)
             if ($feedbackFieldOption->getField() === $this) {
                 $feedbackFieldOption->setField(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, FeedbackFieldDependence>
-     */
-    public function getFeedbackFieldDependences(): Collection
-    {
-        return $this->feedbackFieldDependences;
-    }
-
-    public function addFeedbackFieldDependence(FeedbackFieldDependence $feedbackFieldDependence): static
-    {
-        if (!$this->feedbackFieldDependences->contains($feedbackFieldDependence)) {
-            $this->feedbackFieldDependences->add($feedbackFieldDependence);
-            $feedbackFieldDependence->setSourceField($this);
-        }
-
-        return $this;
-    }
-
-    public function removeFeedbackFieldDependence(FeedbackFieldDependence $feedbackFieldDependence): static
-    {
-        if ($this->feedbackFieldDependences->removeElement($feedbackFieldDependence)) {
-            // set the owning side to null (unless already changed)
-            if ($feedbackFieldDependence->getSourceField() === $this) {
-                $feedbackFieldDependence->setSourceField(null);
             }
         }
 

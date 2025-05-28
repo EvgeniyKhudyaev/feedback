@@ -2,6 +2,7 @@
 
 namespace App\Entity\Feedback;
 
+use App\Entity\MessageLog;
 use App\Enum\Feedback\FeedbackScopeEnum;
 use App\Enum\Feedback\FeedbackTypeEnum;
 use App\Enum\Shared\StatusEnum;
@@ -64,6 +65,12 @@ class Feedback
     #[ORM\OneToMany(targetEntity: FeedbackField::class, mappedBy: 'feedback')]
     private Collection $feedbackFields;
 
+    /**
+     * @var Collection<int, MessageLog>
+     */
+    #[ORM\OneToMany(targetEntity: MessageLog::class, mappedBy: 'feedback')]
+    private Collection $messageLogs;
+
     public function __construct()
     {
         $this->uuid = Guid::uuid4()->toString();
@@ -74,6 +81,7 @@ class Feedback
         $this->feedbackEditors = new ArrayCollection();
         $this->feedbackTargets = new ArrayCollection();
         $this->feedbackFields = new ArrayCollection();
+        $this->messageLogs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -292,5 +300,35 @@ class Feedback
         return $this->getActiveFeedbackEditors()->exists(
             fn($key, $fm) => $fm->getEditor() === $user
         );
+    }
+
+    /**
+     * @return Collection<int, MessageLog>
+     */
+    public function getMessageLogs(): Collection
+    {
+        return $this->messageLogs;
+    }
+
+    public function addMessageLog(MessageLog $messageLog): static
+    {
+        if (!$this->messageLogs->contains($messageLog)) {
+            $this->messageLogs->add($messageLog);
+            $messageLog->setFeedback($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessageLog(MessageLog $messageLog): static
+    {
+        if ($this->messageLogs->removeElement($messageLog)) {
+            // set the owning side to null (unless already changed)
+            if ($messageLog->getFeedback() === $this) {
+                $messageLog->setFeedback(null);
+            }
+        }
+
+        return $this;
     }
 }

@@ -2,39 +2,39 @@
 
 namespace App\Repository;
 
-use App\Entity\Feedback\FeedbackFieldAnswer;
+use App\Entity\MessageLog;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<FeedbackFieldAnswer>
+ * @extends ServiceEntityRepository<MessageLog>
  */
-class FeedbackFieldValueRepository extends ServiceEntityRepository
+class MessageLogRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, FeedbackFieldAnswer::class);
+        parent::__construct($registry, MessageLog::class);
     }
 
     //    /**
-    //     * @return FeedbackFieldValue[] Returns an array of FeedbackFieldValue objects
+    //     * @return MessageLog[] Returns an array of MessageLog objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('f')
-    //            ->andWhere('f.exampleField = :val')
+    //        return $this->createQueryBuilder('m')
+    //            ->andWhere('m.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('f.id', 'ASC')
+    //            ->orderBy('m.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?FeedbackFieldValue
+    //    public function findOneBySomeField($value): ?MessageLog
     //    {
-    //        return $this->createQueryBuilder('f')
-    //            ->andWhere('f.exampleField = :val')
+    //        return $this->createQueryBuilder('m')
+    //            ->andWhere('m.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

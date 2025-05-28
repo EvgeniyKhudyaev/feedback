@@ -2,6 +2,7 @@
 
 namespace App\Entity\Sync;
 
+use App\Entity\MessageLog;
 use App\Enum\Shared\StatusEnum;
 use App\Repository\ClientUserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -48,9 +49,16 @@ class ClientUser
     #[ORM\OneToMany(targetEntity: ServiceHistory::class, mappedBy: 'creator', orphanRemoval: true)]
     private Collection $serviceHistories;
 
+    /**
+     * @var Collection<int, MessageLog>
+     */
+    #[ORM\OneToMany(targetEntity: MessageLog::class, mappedBy: 'clientUser')]
+    private Collection $messageLogs;
+
     public function __construct()
     {
         $this->serviceHistories = new ArrayCollection();
+        $this->messageLogs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -175,6 +183,36 @@ class ClientUser
     public function removeServiceHistory(ServiceHistory $serviceHistory): static
     {
         $this->serviceHistories->removeElement($serviceHistory);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, MessageLog>
+     */
+    public function getMessageLogs(): Collection
+    {
+        return $this->messageLogs;
+    }
+
+    public function addMessageLog(MessageLog $messageLog): static
+    {
+        if (!$this->messageLogs->contains($messageLog)) {
+            $this->messageLogs->add($messageLog);
+            $messageLog->setClientUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessageLog(MessageLog $messageLog): static
+    {
+        if ($this->messageLogs->removeElement($messageLog)) {
+            // set the owning side to null (unless already changed)
+            if ($messageLog->getClientUser() === $this) {
+                $messageLog->setClientUser(null);
+            }
+        }
 
         return $this;
     }

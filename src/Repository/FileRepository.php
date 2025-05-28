@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\Shared\File;
+use App\Entity\File;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

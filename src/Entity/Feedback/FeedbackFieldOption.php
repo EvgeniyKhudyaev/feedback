@@ -5,6 +5,7 @@ namespace App\Entity\Feedback;
 use App\Repository\FeedbackFieldOptionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FeedbackFieldOptionRepository::class)]
@@ -14,6 +15,9 @@ class FeedbackFieldOption
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
+
+    #[ORM\Column(type: Types::GUID)]
+    private ?string $uuid = null;
 
     #[ORM\ManyToOne(inversedBy: 'feedbackFieldOptions')]
     #[ORM\JoinColumn(nullable: false)]
@@ -37,20 +41,22 @@ class FeedbackFieldOption
     #[ORM\Column]
     private ?\DateTime $updatedAt = null;
 
-    /**
-     * @var Collection<int, FeedbackFieldDependence>
-     */
-    #[ORM\OneToMany(targetEntity: FeedbackFieldDependence::class, mappedBy: 'sourceValue')]
-    private Collection $feedbackFieldDependences;
-
-    public function __construct()
-    {
-        $this->feedbackFieldDependences = new ArrayCollection();
-    }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getUuid(): ?string
+    {
+        return $this->uuid;
+    }
+
+    public function setUuid(string $uuid): static
+    {
+        $this->uuid = $uuid;
+
+        return $this;
     }
 
     public function getField(): ?FeedbackField
@@ -133,36 +139,6 @@ class FeedbackFieldOption
     public function setUpdatedAt(\DateTime $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, FeedbackFieldDependence>
-     */
-    public function getFeedbackFieldDependences(): Collection
-    {
-        return $this->feedbackFieldDependences;
-    }
-
-    public function addFeedbackFieldDependence(FeedbackFieldDependence $feedbackFieldDependence): static
-    {
-        if (!$this->feedbackFieldDependences->contains($feedbackFieldDependence)) {
-            $this->feedbackFieldDependences->add($feedbackFieldDependence);
-            $feedbackFieldDependence->setSourceValue($this);
-        }
-
-        return $this;
-    }
-
-    public function removeFeedbackFieldDependence(FeedbackFieldDependence $feedbackFieldDependence): static
-    {
-        if ($this->feedbackFieldDependences->removeElement($feedbackFieldDependence)) {
-            // set the owning side to null (unless already changed)
-            if ($feedbackFieldDependence->getSourceValue() === $this) {
-                $feedbackFieldDependence->setSourceValue(null);
-            }
-        }
 
         return $this;
     }

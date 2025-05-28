@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Entity\Feedback\FeedbackFieldAnswer;
 use App\Entity\Feedback\FeedbackManager;
-use App\Entity\Shared\File;
 use App\Enum\Shared\StatusEnum;
 use App\Enum\UserRoleEnum;
 use App\Repository\UserRepository;
@@ -47,9 +46,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'string', length: 255, nullable: false)]
     private ?string $password = null;
-
-//    #[ORM\Column(type: 'string', length: 50, enumType: UserRole::class)]
-//    private ?UserRole $role;
 
     #[ORM\Column(type: 'string', length: 50, enumType: UserRoleEnum::class)]
     private ?UserRoleEnum $role;
