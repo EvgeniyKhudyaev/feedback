@@ -3,25 +3,30 @@
 {% block title %}Редактирование профиля{% endblock %}
 
 {% block body %}
-    <h1>Редактирование профиля</h1>
+    {% form_theme form 'bootstrap_5_layout.html.twig' %}
+    <div class="container mt-5">
+        <div class="mx-auto p-4 border rounded shadow-sm bg-white" style="max-width: 800px;">
+            <h1 class="mb-4">Редактирование профиля</h1>
 
-    {{ form_start(form) }}
+            {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
 
-    <div class="mb-3">
-        {{ form_label(form.name, 'Имя пользователя') }}
-        {{ form_widget(form.name, { attr: { class: 'form-control' } }) }}
-        {{ form_errors(form.name) }}
+            <div class="mb-3">
+                {{ form_label(form.name, 'Имя пользователя', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.name) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.email, 'Email', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.email) }}
+            </div>
+
+            {# Добавь другие поля, если нужно #}
+
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+
+            {{ form_end(form) }}
+        </div>
     </div>
-
-    <div class="mb-3">
-        {{ form_label(form.email, 'Email') }}
-        {{ form_widget(form.email, { attr: { class: 'form-control' } }) }}
-        {{ form_errors(form.email) }}
-    </div>
-
-    {# Другие поля по необходимости #}
-
-    <button type="submit" class="btn btn-primary">Сохранить</button>
-
-    {{ form_end(form) }}
 {% endblock %}

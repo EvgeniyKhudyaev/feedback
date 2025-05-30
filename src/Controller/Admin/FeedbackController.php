@@ -11,6 +11,7 @@ use App\Enum\Shared\StatusEnum;
 use App\Enum\UserRoleEnum;
 use App\Form\Feedback\FeedbackType;
 use App\Repository\FeedbackRepository;
+use App\Repository\ServiceRepository;
 use App\Repository\UserRepository;
 use App\Service\Feedback\FeedbackEditorManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,6 +32,7 @@ class FeedbackController extends AbstractController
         private readonly LoggerInterface $logger,
         private readonly FeedbackRepository $feedbackRepository,
         private readonly UserRepository  $userRepository,
+        private readonly ServiceRepository $serviceRepository,
         private readonly Security $security,
         private readonly EntityManagerInterface $em,
     )
@@ -78,11 +80,14 @@ class FeedbackController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
+        $timesCompleted = $this->feedbackRepository->countUniqueClientsForFeedback($feedback->getId());
+
         return $this->render('admin/feedback/view.html.twig', [
             'feedback' => $feedback,
             'types' => FeedbackTypeEnum::getChoices(),
             'scopes' => FeedbackScopeEnum::getChoices(),
             'statuses' => StatusEnum::getChoices(),
+            'timesCompleted' => $timesCompleted,
         ]);
     }
 
@@ -162,5 +167,46 @@ class FeedbackController extends AbstractController
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    #[Route('/{id}/relations', name: 'admin_feedback_relations', requirements: ['id' => '\d+'])]
+    public function getRelationsForm(Feedback $feedback): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN'); // или другая логика доступа
+
+        $services = $this->serviceRepository->findAll(); // загрузить сервисы
+
+        return $this->render('admin/feedback/_relations_form.html.twig', [
+            'feedback' => $feedback,
+            'services' => $services,
+        ]);
+    }
+
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    #[Route('/{id}/manage-relations', name: 'admin_feedback_manage_relations', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function manageRelations(Request $request, Feedback $feedback): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $relationsIds = $request->request->get('relations', []);
+
+        // логика сохранения связей (например, $feedback->setFieldsByIds($relationsIds))
+
+        $this->em->flush();
+
+        // вернуть актуальные связи для обновления списка на странице
+        $relations = [];
+        foreach ($feedback->getFields() as $field) {
+            $relations[] = [
+                'name' => $field->getLabel(),
+                'value' => $field->get(),
+            ];
+        }
+
+        return $this->json([
+            'success' => true,
+            'relations' => $relations,
+        ]);
     }
 }

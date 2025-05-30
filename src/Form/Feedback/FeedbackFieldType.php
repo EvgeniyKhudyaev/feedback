@@ -41,6 +41,7 @@ class FeedbackFieldType extends AbstractType
                     FeedbackFieldTypeEnum::RADIO => 'Радио',
                     FeedbackFieldTypeEnum::MULTISELECT => 'Множественный список',
                     FeedbackFieldTypeEnum::RATING => 'Рейтинг',
+                    FeedbackFieldTypeEnum::FILE => 'Файл',
                 },
                 'placeholder' => 'Выберите тип',
                 'attr' => [

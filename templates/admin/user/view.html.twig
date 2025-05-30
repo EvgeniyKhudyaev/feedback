@@ -1,49 +1,79 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Пользователь: {{ user.name }}{% endblock %}
+{% block title %}Пользователь №{{ user.id }}{% endblock %}
 
 {% block body %}
-    <div class="container mt-4">
-        <h1>Профиль пользователя</h1>
+    <div class="container mt-0">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ path('admin_user_index') }}">Список пользователей</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    Пользователь {{ user.id }}
+                </li>
+            </ol>
+        </nav>
 
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                Информация о пользователе #{{ user.id }}
-            </div>
+        <h1 class="mb-4">
+            Профиль: {{ user.name }}
+        </h1>
+
+
+        <div class="mb-4">
+            <a href="{{ path('admin_user_edit', { id: user.id }) }}" class="btn btn-primary me-2">
+                Редактировать
+            </a>
+
+            <form method="post" action="{{ path('admin_user_delete', { id: user.id }) }}" style="display:inline-block;" onsubmit="return confirm('Удалить пользователя?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ user.id) }}">
+                <button class="btn btn-danger">Удалить</button>
+            </form>
+        </div>
+
+        <div class="mb-4">
+            <img
+                    src="{{ asset(user.avatar ?: 'images/default-avatar.png') }}"
+                    alt="Аватар пользователя"
+                    class="img-thumbnail"
+                    style="max-width: 200px;">
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">Основная информация</div>
             <div class="card-body">
                 <dl class="row">
-                    <dt class="col-sm-3">Имя</dt>
+                    <dt class="col-sm-3">ID:</dt>
+                    <dd class="col-sm-9">{{ user.id }}</dd>
+
+                    <dt class="col-sm-3">Имя:</dt>
                     <dd class="col-sm-9">{{ user.name }}</dd>
 
-                    <dt class="col-sm-3">Email</dt>
+                    <dt class="col-sm-3">Email:</dt>
                     <dd class="col-sm-9">{{ user.email }}</dd>
 
+                    <dt class="col-sm-3">Телефон:</dt>
+                    <dd class="col-sm-9">{{ user.phone ?: 'Не указано' }}</dd>
+
+                    <dt class="col-sm-3">Телеграм:</dt>
+                    <dd class="col-sm-9">{{ user.telegram ?: 'Не указано' }}</dd>
+
                     {% if user.role is defined %}
-                        <dt class="col-sm-3">Роль</dt>
+                        <dt class="col-sm-3">Роль:</dt>
                         <dd class="col-sm-9">{{ user.role.value }}</dd>
                     {% endif %}
 
-                    {% if user.status is defined %}
-                        <dt class="col-sm-3">Статус</dt>
-                        <dd class="col-sm-9">
-                            {% if user.status == 'active' %}
-                                <span class="badge bg-success">Активен</span>
-                            {% elseif user.status == 'inactive' %}
-                                <span class="badge bg-secondary">Неактивен</span>
-                            {% else %}
-                                <span class="badge bg-warning">Неизвестно</span>
-                            {% endif %}
-                        </dd>
-                    {% endif %}
-                </dl>
+                    <dt class="col-sm-3">Статус:</dt>
+                    <dd class="col-sm-9">{{ statuses[user.status.value] }}</dd>
 
-                <a href="{{ path('admin_user_index') }}" class="btn btn-secondary">Вернуться к списку</a>
-                <a href="{{ path('admin_user_edit', { id: user.id }) }}" class="btn btn-primary">Редактировать</a>
-                <form method="post" action="{{ path('admin_user_delete', { id: user.id }) }}" style="display:inline-block;" onsubmit="return confirm('Удалить пользователя?');">
-                    <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ user.id) }}">
-                    <button class="btn btn-danger">Удалить</button>
-                </form>
+                    <dt class="col-sm-3">Дата создания:</dt>
+                    <dd class="col-sm-9">{{ user.createdAt ? user.createdAt|date('Y-m-d H:i:s') : 'N/A' }}</dd>
+
+                    <dt class="col-sm-3">Дата обновления:</dt>
+                    <dd class="col-sm-9">{{ user.updatedAt ? user.updatedAt|date('Y-m-d H:i:s') : 'N/A' }}</dd>
+                </dl>
             </div>
         </div>
+
     </div>
 {% endblock %}

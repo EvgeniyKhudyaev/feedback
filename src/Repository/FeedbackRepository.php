@@ -91,6 +91,25 @@ class FeedbackRepository extends ServiceEntityRepository
         return $qb;
     }
 
+
+    public function countUniqueClientsForFeedback(int $feedbackId): int
+    {
+        $entityManager = $this->getEntityManager();
+
+        $dql = "
+        SELECT COUNT(DISTINCT answer.responder)
+        FROM App\Entity\Feedback\FeedbackFieldAnswer answer
+        JOIN answer.field field
+        JOIN field.feedback feedback
+        WHERE feedback.id = :feedbackId
+    ";
+
+        $query = $entityManager->createQuery($dql)
+            ->setParameter('feedbackId', $feedbackId);
+
+        return (int) $query->getSingleScalarResult();
+    }
+
     //    /**
     //     * @return Feedback[] Returns an array of Feedback objects
     //     */

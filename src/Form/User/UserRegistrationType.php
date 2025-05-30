@@ -48,8 +48,8 @@ class UserRegistrationType extends AbstractType
                 ],
             ])
             ->add('submit', SubmitType::class, [
-                'label' => 'Зарегистрироваться',
-                'attr' => ['class' => 'btn btn-primary w-50']
+                'label' => 'Создать',
+                'attr' => ['class' => 'btn btn-primary w-25']
             ]);;
     }
 

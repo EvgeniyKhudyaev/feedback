@@ -2,12 +2,15 @@
 
 namespace App\Controller;
 
+use App\DTO\Feedback\FeedbackFilterDto;
+use App\DTO\Feedback\FeedbackSortDto;
 use App\Entity\Feedback\Feedback;
 use App\Entity\Feedback\FeedbackField;
 use App\Repository\FeedbackFieldAnswerRepository;
 use App\Repository\FeedbackFieldOptionRepository;
 use App\Repository\FeedbackFieldRepository;
 use App\Repository\FeedbackRepository;
+use Knp\Component\Pager\PaginatorInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -43,11 +46,6 @@ class ReportController extends AbstractController
         $fields = $this->feedbackFieldRepository->findBy(['feedback' => $feedback]);
         $answers = $this->feedbackFieldAnswerRepository->findAnswersByFeedback($feedback->getId());
 
-        // Формируем таблицу: строки — ответы пользователей, колонки — поля формы
-
-        // Можно передать всё в Twig, чтобы вывести таблицу
-
-        // Если есть запрос на Excel
         if ($request->query->get('export') === 'excel') {
             return $this->exportExcel($feedback, $fields, $answers);
         }

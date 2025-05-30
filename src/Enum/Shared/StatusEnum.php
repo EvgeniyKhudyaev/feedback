@@ -20,4 +20,15 @@ enum StatusEnum: string
             self::ARCHIVED->value => 'Архивный',
         ];
     }
+
+    public static function getChoicesView(): array
+    {
+        return [
+            'Активный' => self::ACTIVE->value,
+            'Неактивный' => self::INACTIVE->value,
+            'Удалённый' => self::DELETED->value,
+            'Заблокированный' => self::BLOCKED->value,
+            'Архивный' => self::ARCHIVED->value,
+        ];
+    }
 }

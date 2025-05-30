@@ -17,4 +17,14 @@ enum UserRoleEnum: string
             'Участник' => self::MEMBER,
         ];
     }
+    public static function getChoicesIndex(): array
+    {
+        return [
+            self::ADMIN->value => 'Администратор',
+            self::MANAGER->value => 'Менеджер',
+            self::MEMBER->value => 'Участник',
+            self::API->value => 'Апи',
+        ];
+    }
+
 }

@@ -2,10 +2,15 @@
 
 namespace App\Controller\Admin;
 
+use App\DTO\User\UserFilterDto;
+use App\DTO\User\UserSortDto;
 use App\Entity\User;
+use App\Enum\Shared\StatusEnum;
+use App\Enum\UserRoleEnum;
 use App\Form\User\UserEditType;
 use App\Repository\UserRepository;
 use App\Service\User\UserService;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,12 +27,25 @@ final class UserController extends AbstractController
     }
 
     #[Route('/', name: 'admin_user_index')]
-    public function index(): Response
+    public function index(Request $request, PaginatorInterface $paginator): Response
     {
-        $users = $this->userRepository->findAll();
+        $filters = new UserFilterDto($request->query->all());
+        $sort = new UserSortDto($request->query->all());
 
+        $qb = $this->userRepository->getFilteredQueryBuilder($filters);
+//        $qb = $this->userRepository->applySorting($qb, $sort);
+
+        $pagination = $paginator->paginate(
+            $qb,
+            $request->query->getInt('page', 1),
+            10
+        );
         return $this->render('admin/user/index.html.twig', [
-            'users' => $users,
+            'pagination' => $pagination,
+            'filters' => $filters,
+            'sort' => $sort,
+            'statuses'      => StatusEnum::getChoices(),
+            'roles'      => UserRoleEnum::getChoicesIndex(),
         ]);
     }
 
@@ -36,6 +54,7 @@ final class UserController extends AbstractController
     {
         return $this->render('admin/user/view.html.twig', [
             'user' => $user,
+            'statuses'      => StatusEnum::getChoices(),
         ]);
     }
 

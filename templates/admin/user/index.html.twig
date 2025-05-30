@@ -1,34 +1,128 @@
 {% extends 'base.html.twig' %}
+{% import 'macros/table.twig' as table %}
 
 {% block title %}Пользователи{% endblock %}
 
 {% block body %}
+    <style>
+        thead.custom-blue-header th {
+            background-color: #0d6efd !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+        }
+    </style>
+
     <h1>Пользователи</h1>
 
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Имя</th>
-            <th>Email</th>
-            <th>Действия</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for user in users %}
-            <tr>
-                <td>{{ user.id }}</td>
-                <td>{{ user.name }}</td>
-                <td>{{ user.email }}</td>
-                <td>
-                    <a href="{{ path('admin_user_view', { id: user.id }) }}" class="btn btn-sm btn-primary">Просмотр</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="4" class="text-center">Пользователей не найдено</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <div class="mb-3">
+        <a href="{{ path('register') }}" class="btn btn-outline-primary">
+            Создать
+        </a>
+    </div>
+
+    <form method="get" id="filtersForm" novalidate>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="custom-blue-header align-middle">
+                <tr>
+                    <th style="width: 80px;">
+                        {{ table.sortable_column('ID', 'u.id', sort.field, sort.direction, 'admin_user_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Имя', 'u.name', sort.field, sort.direction, 'admin_user_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Email', 'u.email', sort.field, sort.direction, 'admin_user_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Телефон', 'u.phone', sort.field, sort.direction, 'admin_user_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Телеграм', 'u.telegram', sort.field, sort.direction, 'admin_user_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Роль', 'u.role', sort.field, sort.direction, 'admin_user_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Статус', 'u.status', sort.field, sort.direction, 'admin_user_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Дата создания', 'u.createdAt', sort.field, sort.direction, 'admin_user_index') }}
+                    </th>
+                    <th>
+                        {{ table.sortable_column('Дата обновления', 'u.updatedAt', sort.field, sort.direction, 'admin_user_index') }}
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        {{ table.filter_input('filter_id_id', 'filter_id', filters.id, 'ID', 'auto-submit') }}
+                    </th>
+                    <th>
+                        {{ table.filter_input('filter_name_id', 'filter_name', filters.name, 'Фильтр по имени', 'auto-submit') }}
+                    </th>
+                    <th>
+                        {{ table.filter_input('filter_email_id', 'filter_email', filters.email, 'Фильтр по email', 'auto-submit') }}
+                    </th>
+                    <th>
+                        {{ table.filter_input('filter_phone_id', 'filter_phone', filters.phone, 'Фильтр по телефону', 'auto-submit') }}
+                    </th>
+                    <th>
+                        {{ table.filter_input('filter_telegram_id', 'filter_telegram', filters.telegram, 'Фильтр по telegram', 'auto-submit') }}
+                    </th>
+                    <th>
+                        {{ table.filter_select('filter_role_id', 'filter_role', roles, filters.role, 'Фильтр по роли', 'auto-submit') }}
+                    </th>
+                    <th>
+                        {{ table.filter_select('filter_status_id', 'filter_status', statuses, filters.status, 'Фильтр по статусу', 'auto-submit') }}
+                    </th>
+                    <th>
+                        {{ table.filter_date({
+                            idFrom: 'filter_created_from',
+                            nameFrom: 'filter_created_from',
+                            valueFrom: filters.createdFrom ? filters.createdFrom|date('Y-m-d') : '',
+                            idTo: 'filter_created_to',
+                            nameTo: 'filter_created_to',
+                            valueTo: filters.createdTo ? filters.createdTo|date('Y-m-d') : ''
+                        }) }}
+                    </th>
+                    <th>
+                        {{ table.filter_date({
+                            idFrom: 'filter_updated_from',
+                            nameFrom: 'filter_updated_from',
+                            valueFrom: filters.updatedFrom ? filters.updatedFrom|date('Y-m-d') : '',
+                            idTo: 'filter_updated_to',
+                            nameTo: 'filter_updated_to',
+                            valueTo: filters.updatedTo ? filters.updatedTo|date('Y-m-d') : ''
+                        }) }}
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for user in pagination %}
+                    <tr>
+                        <td style="width: 80px;">
+                            <a href="{{ path('admin_user_view', { id: user.id }) }}">{{ user.id }}</a>
+                        </td>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.phone ?: 'Не указано' }}</td>
+                        <td>{{ user.telegram ?: 'Не указано' }}</td>
+                        <td>{{ roles[user.role.value] }}</td>
+                        <td>{{ statuses[user.status.value] }}</td>
+                        <td>{{ user.createdAt|date('d.m.Y H:i') }}</td>
+                        <td>{{ user.updatedAt|date('d.m.Y H:i') }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">Пользователи не найдены</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+    <div class="navigation">
+        {{ knp_pagination_render(pagination) }}
+    </div>
 {% endblock %}

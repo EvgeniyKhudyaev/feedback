@@ -1,0 +1,26 @@
+<form id="relationsForm" method="post" action="{{ path('admin_feedback_manage_relations', {'id': feedback.id}) }}">
+    <div class="modal-header">
+        <h5 class="modal-title" id="relationsModalLabel">Назначение связей для отзыва {{ feedback.name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+    </div>
+    <div class="modal-body">
+        <label for="relations" class="form-label">Выберите связи:</label>
+        <select id="relations" name="relations[]" class="form-select" multiple size="10">
+            {% for service in services %}
+                <option value="{{ service.id }}"
+                        {% for relation in feedback.fields %}
+                            {% if relation.id == service.id %}
+                                selected
+                            {% endif %}
+                        {% endfor %}
+                >
+                    {{ service.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="submit" class="btn btn-success">Сохранить</button>
+    </div>
+</form>
