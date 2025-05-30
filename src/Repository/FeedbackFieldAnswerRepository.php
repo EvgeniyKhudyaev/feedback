@@ -16,7 +16,7 @@ class FeedbackFieldAnswerRepository extends ServiceEntityRepository
     public function findAnswersByFeedback(int $feedbackId): array
     {
         $qb = $this->createQueryBuilder('a')
-            ->select('r.id AS responder, f.label AS field_label, a.value, a.createdAt')
+            ->select('r.name AS responder, f.label AS field_label, a.value, a.createdAt')
             ->join('a.responder', 'r')           // присоединяем ClientUser
             ->join('a.field', 'f')               // присоединяем FeedbackField
             ->join('f.feedback', 'fb')           // присоединяем Feedback
@@ -35,7 +35,7 @@ class FeedbackFieldAnswerRepository extends ServiceEntityRepository
             $value = $row['value'];
             $createdAt = $row['createdAt'];
 
-            $rows[$responder][$field] = [$value, $createdAt];
+            $rows[$responder][$field] = [$value, $createdAt, $responder];
         }
 
         return array_values($rows);

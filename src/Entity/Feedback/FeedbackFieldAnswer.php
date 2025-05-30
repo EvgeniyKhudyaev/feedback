@@ -3,9 +3,12 @@
 namespace App\Entity\Feedback;
 
 use App\Entity\Sync\ClientUser;
+use App\Enum\Shared\StatusEnum;
 use App\Repository\FeedbackFieldAnswerRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Ramsey\Uuid\Guid\Guid;
 
 #[ORM\Entity(repositoryClass: FeedbackFieldAnswerRepository::class)]
 class FeedbackFieldAnswer
@@ -34,6 +37,11 @@ class FeedbackFieldAnswer
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $updatedAt = null;
+
+    public function __construct()
+    {
+        $this->uuid = Guid::uuid4()->toString();
+    }
 
     public function getId(): ?int
     {

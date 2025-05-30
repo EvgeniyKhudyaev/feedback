@@ -19,8 +19,12 @@
                 <td>{{ feedback.id }}</td>
                 <td>{{ feedback.name }}</td>
                 <td>
-                    <a href="{{ path('report_view', { feedback: feedback.id }) }}" class="btn btn-primary btn-sm">Просмотр отчёта</a>
+                    <a href="{{ path('report_view', { feedback: feedback.id }) }}"
+                       class="btn btn-primary btn-sm me-1">Просмотр отчёта</a>
+                    <a href="{{ path('report_chart', { feedback: feedback.id }) }}"
+                       class="btn btn-success btn-sm">Просмотр графика</a>
                 </td>
+
             </tr>
         {% else %}
             <tr>

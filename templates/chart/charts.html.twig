@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Графики{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+        <h1 class="mb-4">Графики по опросу: {{ feedback.name }}</h1>
+
+        {% if charts is not empty %}
+            <div class="row">
+                {% for chart in charts %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-light">
+                                <strong>{{ chart.question }}</strong>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="chart{{ loop.index }}"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">Нет данных для отображения графиков.</div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        {% for chart in charts %}
+        new Chart(document.getElementById('chart{{ loop.index }}'), {
+            type: 'pie',
+            data: {
+                labels: {{ chart.labels|json_encode|raw }},
+                datasets: [{
+                    data: {{ chart.data|json_encode|raw }},
+                    backgroundColor: [
+                        '#4e79a7', '#f28e2b', '#e15759',
+                        '#76b7b2', '#59a14f', '#edc948',
+                        '#b07aa1', '#ff9da7', '#9c755f', '#bab0ab'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        {% endfor %}
+    </script>
+{% endblock %}

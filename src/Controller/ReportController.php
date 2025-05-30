@@ -12,6 +12,9 @@ use App\Repository\FeedbackFieldRepository;
 use App\Repository\FeedbackRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -63,7 +66,7 @@ class ReportController extends AbstractController
         $sheet = $spreadsheet->getActiveSheet();
 
         // Заголовки
-        $sheet->setCellValue('A1', 'User ID / Submission ID');
+        $sheet->setCellValue('A1', 'Клиент');
         $col = 'B';
 
         /** @var FeedbackField $field */
@@ -72,6 +75,12 @@ class ReportController extends AbstractController
             $col++;
         }
 
+        // Стили для шапки
+        $headerRange = 'A1:' . chr(ord('A') + count($fields)) . '1';
+        $sheet->getStyle($headerRange)->getFont()->setBold(true);
+        $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFDCE6F1');
+        $sheet->getStyle($headerRange)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
         // Данные
         $row = 2;
         foreach ($answers as $key => $answerRow) {
@@ -79,11 +88,25 @@ class ReportController extends AbstractController
             $sheet->setCellValue('A'.$row, $key);
             $col = 'B';
             foreach ($fields as $field) {
-                $fieldId = $field->getId();
-                $sheet->setCellValue($col.$row, $answerRow[$field->getLabel()][0] ?? '');
+                $fieldLabel = $field->getLabel();
+                // Проверка на существование данных
+                $value = $answerRow[$fieldLabel][0] ?? '';
+                $sheet->setCellValue($col.$row, $value);
                 $col++;
             }
             $row++;
+        }
+
+        // Выделяем рамки по всему диапазону с данными и заголовком
+        $lastCol = chr(ord('A') + count($fields));
+        $lastRow = $row - 1;
+        $dataRange = 'A1:' . $lastCol . $lastRow;
+
+        $sheet->getStyle($dataRange)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF000000'));
+
+        // Автоподгонка ширины колонок
+        for ($c = 'A'; $c <= $lastCol; $c++) {
+            $sheet->getColumnDimension($c)->setAutoSize(true);
         }
 
         $writer = new Xlsx($spreadsheet);
