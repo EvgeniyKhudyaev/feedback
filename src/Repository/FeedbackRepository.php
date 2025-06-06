@@ -22,6 +22,52 @@ class FeedbackRepository extends ServiceEntityRepository
         parent::__construct($registry, Feedback::class);
     }
 
+    public function getCountByDayOfWeekChartData(Feedback $feedback): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "
+SELECT EXTRACT(DOW FROM feedback_field_answer.created_at) AS dow, COUNT(DISTINCT feedback.id) AS cnt
+FROM feedback_field_answer
+INNER JOIN feedback_field ON feedback_field.id = feedback_field_answer.field_id
+INNER JOIN feedback ON feedback.id = feedback_field.feedback_id
+WHERE feedback_field.feedback_id = :feedbackId
+GROUP BY dow
+ORDER BY dow
+    ";
+
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery(['feedbackId' => $feedback->getId()]);
+
+        $rows = $result->fetchAllAssociative();
+
+        // Инициализируем массив с нулями для каждого дня (0-6)
+        $countsByDay = array_fill(0, 7, 0);
+
+        $countsByDay = array_fill(0, 7, 0);
+
+        foreach ($rows as $row) {
+            $countsByDay[(int)$row['dow']] = (int)$row['cnt'];
+        }
+
+        $orderedCounts = [
+            $countsByDay[1], // Пн
+            $countsByDay[2], // Вт
+            $countsByDay[3], // Ср
+            $countsByDay[4], // Чт
+            $countsByDay[5], // Пт
+            $countsByDay[6], // Сб
+            $countsByDay[0], // Вс
+        ];
+
+        return [
+            'question' => 'Количество отзывов по дням недели',
+            'labels' => ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+            'data' => $orderedCounts,
+            'type' => 'line',
+        ];
+    }
+
     public function getFilteredQueryBuilder(FeedbackFilterDto $filters): QueryBuilder
     {
         $qb = $this->createQueryBuilder('f');

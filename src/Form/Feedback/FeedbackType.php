@@ -26,7 +26,10 @@ class FeedbackType extends AbstractType
                 'by_reference' => false,
                 'prototype' => true,
                 'prototype_name' => '__field__',
-                'entry_options' => ['label' => false],
+                'entry_options' => [
+                    'label' => false, // Убираем label
+                ],
+                'label' => false,
             ]);
     }
 }

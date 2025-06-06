@@ -47,7 +47,7 @@
 
                                     {{ form_errors(field) }}
                                 </div>
-                            {% else %}
+                            {% elseif field.vars.name != '_token' %}
                                 <div class="mb-3">
                                     {{ form_label(field) }}
                                     {{ form_widget(field, {'attr': {'class': 'form-control'}}) }}
@@ -55,13 +55,6 @@
                                 </div>
                             {% endif %}
                         {% endfor %}
-
-
-
-
-
-
-
 
                         <div class="mt-3">
                             <button type="submit" class="btn btn-primary">Отправить</button>

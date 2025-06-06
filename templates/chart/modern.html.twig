@@ -1,0 +1,175 @@
+{# templates/chart/modern.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Графики опроса — {{ feedback.name }}{% endblock %}
+
+{% block body %}
+    <div class="container py-4">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ path('report_index') }}">Отчеты</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    {{ feedback.name }}
+                </li>
+            </ol>
+        </nav>
+
+        <h1 class="mb-4">Графики по опросу: {{ feedback.name }}</h1>
+
+        {% if chartsRating is empty and chartsOther is empty %}
+            <div class="alert alert-info">Нет данных для отображения графиков.</div>
+        {% else %}
+            <ul class="nav nav-tabs mb-4" id="chartTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="rating-tab" data-bs-toggle="tab" data-bs-target="#rating"
+                            type="button" role="tab" aria-controls="rating" aria-selected="true">
+                        Оценки (Рейтинг)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="other-tab" data-bs-toggle="tab" data-bs-target="#other"
+                            type="button" role="tab" aria-controls="other" aria-selected="false">
+                        Выбор (Список/Радио)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="line-tab" data-bs-toggle="tab" data-bs-target="#line"
+                            type="button" role="tab" aria-controls="line" aria-selected="false">
+                        Динамика
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="chartTabsContent">
+                <div class="tab-pane fade show active" id="rating" role="tabpanel" aria-labelledby="rating-tab">
+                    <div class="row">
+                        {% for chart in chartsRating %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card shadow-sm">
+                                    <div class="card-header bg-success text-white">
+                                        <strong>{{ chart.question }}</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="chartRating{{ loop.index }}"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-12">
+                                <p class="text-muted">Нет данных для оценок.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="other" role="tabpanel" aria-labelledby="other-tab">
+                    <div class="row">
+                        {% for chart in chartsOther %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card shadow-sm">
+                                    <div class="card-header bg-success text-white">
+                                        <strong>{{ chart.question }}</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="chartOther{{ loop.index }}"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-12">
+                                <p class="text-muted">Нет данных для выбора.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="line" role="tabpanel" aria-labelledby="line-tab">
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-success text-white">
+                                    <strong>{{ lineChart.question }}</strong>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="lineChartCanvas"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        {% for chart in chartsRating %}
+        new Chart(document.getElementById('chartRating{{ loop.index }}'), {
+            type: 'bar',
+            data: {
+                labels: {{ chart.labels|json_encode|raw }},
+                datasets: [{
+                    label: '{{ chart.question|e('js') }}',
+                    data: {{ chart.data|json_encode|raw }},
+                    backgroundColor: '#4e79a7'
+                }]
+            },
+            options: {
+                indexAxis: 'x',
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: false }
+                }
+            }
+        });
+        {% endfor %}
+
+        {% for chart in chartsOther %}
+        new Chart(document.getElementById('chartOther{{ loop.index }}'), {
+            type: 'pie',
+            data: {
+                labels: {{ chart.labels|json_encode|raw }},
+                datasets: [{
+                    data: {{ chart.data|json_encode|raw }},
+                    backgroundColor: [
+                        '#4e79a7', '#f28e2b', '#e15759',
+                        '#76b7b2', '#59a14f', '#edc948',
+                        '#b07aa1', '#ff9da7', '#9c755f', '#bab0ab'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+        {% endfor %}
+
+        new Chart(document.getElementById('lineChartCanvas'), {
+            type: '{{ lineChart.type|default("line") }}',
+            data: {
+                labels: {{ lineChart.labels|json_encode|raw }},
+                datasets: [{
+                    label: '{{ lineChart.question|e('js') }}',
+                    data: {{ lineChart.data|json_encode|raw }},
+                    fill: false,
+                    borderColor: '#f28e2b',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' }
+                }
+            }
+        });
+    </script>
+{% endblock %}

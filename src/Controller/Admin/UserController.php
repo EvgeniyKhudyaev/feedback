@@ -33,7 +33,6 @@ final class UserController extends AbstractController
         $sort = new UserSortDto($request->query->all());
 
         $qb = $this->userRepository->getFilteredQueryBuilder($filters);
-//        $qb = $this->userRepository->applySorting($qb, $sort);
 
         $pagination = $paginator->paginate(
             $qb,

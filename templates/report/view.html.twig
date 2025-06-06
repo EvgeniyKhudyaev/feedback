@@ -3,11 +3,34 @@
 {% block title %}Отчет по форме: {{ feedback.name }}{% endblock %}
 
 {% block body %}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ path('report_index') }}">Отчеты</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ feedback.name }}
+            </li>
+        </ol>
+    </nav>
+
     <h1>Отчет: {{ feedback.name }}</h1>
 
-    <a href="{{ path('report_view', {feedback: feedback.id, export: 'excel'}) }}" class="btn btn-success mb-3">
-        Скачать Excel
-    </a>
+    <div class="mb-3 d-flex align-items-center gap-2">
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#fieldModal">
+            Выбрать вопросы
+        </button>
+
+        <form method="get" action="{{ path('report_view', {feedback: feedback.id}) }}">
+            {% for field in fields %}
+                <input type="hidden" name="fields[]" value="{{ field.id }}" class="field-hidden" data-label="{{ field.label }}">
+            {% endfor %}
+            <input type="hidden" name="export" value="excel">
+            <button type="submit" class="btn btn-success">
+                Скачать Excel
+            </button>
+        </form>
+    </div>
 
     <table class="table table-bordered table-striped">
         <thead>
@@ -16,7 +39,7 @@
             <th>Дата</th>
             <th>Клиент</th>
             {% for field in fields %}
-                <th>{{ field.label }}</th>
+                <th class="field-col field-{{ field.id }}">{{ field.label }}</th>
             {% endfor %}
         </tr>
         </thead>
@@ -25,17 +48,85 @@
             <tr>
                 <td>{{ submissionId }}</td>
                 <td>{{ answerRow[fields[0].label][1]|date('Y-m-d H:i') }}</td>
-                <td>{{ answerRow[fields[0].label][2]|default('—') }}</td>
+                {% set clientId = answerRow[fields[0].label][3]|default(null) %}
+                <td>
+                    {% if clientId %}
+                        <a href="{{ path('sync_client_view', {id: clientId}) }}">
+                            {{ answerRow[fields[0].label][2]|default('—') }}
+                        </a>
+                    {% else %}
+                        {{ answerRow[fields[0].label][2]|default('—') }}
+                    {% endif %}
+                </td>
+
                 {% for field in fields %}
-                    <td>{{ answerRow[field.label][0]|default('—') }}</td>
+                    <td class="field-col field-{{ field.id }}">{{ answerRow[field.label][0]|default('—') }}</td>
                 {% endfor %}
             </tr>
         {% else %}
             <tr>
-                <td colspan="{{ fields|length + 1 }}">Данных нет</td>
+                <td colspan="{{ fields|length + 3 }}">Данных нет</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 
+    {# Модалка выбора полей #}
+    <div class="modal fade" id="fieldModal" tabindex="-1" aria-labelledby="fieldModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Выбор вопросов</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="fieldForm">
+                        {% for field in fields %}
+                            <div class="form-check">
+                                <input class="form-check-input field-toggle" type="checkbox" value="{{ field.id }}" id="fieldCheck{{ field.id }}" checked>
+                                <label class="form-check-label" for="fieldCheck{{ field.id }}">
+                                    {{ field.label }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="applyFields">Применить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('applyFields').addEventListener('click', function () {
+            const allToggles = document.querySelectorAll('.field-toggle');
+            const hiddenInputs = document.querySelectorAll('.field-hidden');
+
+            allToggles.forEach(toggle => {
+                const fieldId = toggle.value;
+                const cells = document.querySelectorAll('.field-' + fieldId);
+                const hiddenInput = Array.from(hiddenInputs).find(input => input.value === fieldId);
+
+                if (toggle.checked) {
+                    cells.forEach(cell => cell.style.display = '');
+                    if (!hiddenInput) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'fields[]';
+                        input.value = fieldId;
+                        input.className = 'field-hidden';
+                        document.querySelector('form').appendChild(input);
+                    }
+                } else {
+                    cells.forEach(cell => cell.style.display = 'none');
+                    if (hiddenInput) hiddenInput.remove();
+                }
+            });
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('fieldModal'));
+            modal.hide();
+        });
+    </script>
 {% endblock %}

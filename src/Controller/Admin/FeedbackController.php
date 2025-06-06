@@ -75,10 +75,10 @@ class FeedbackController extends AbstractController
     #[Route('/{id}', name: 'admin_feedback_view', requirements: ['id' => '\d+'])]
     public function view(Feedback $feedback): Response
     {
-        $user = $this->security->getUser();
-        if (!$this->security->isGranted('ROLE_ADMIN') && !$feedback->hasEditor($user)) {
-            throw $this->createAccessDeniedException();
-        }
+//        $user = $this->security->getUser();
+//        if (!$this->security->isGranted('ROLE_ADMIN') && !$feedback->hasEditor($user)) {
+//            throw $this->createAccessDeniedException();
+//        }
 
         $timesCompleted = $this->feedbackRepository->countUniqueClientsForFeedback($feedback->getId());
 
@@ -94,9 +94,9 @@ class FeedbackController extends AbstractController
     #[Route('/create', name: 'admin_feedback_create', methods: ['GET', 'POST'])]
     public function create(Request $request): Response
     {
-        if (!$this->security->isGranted('ROLE_ADMIN') && !$this->security->isGranted('ROLE_MANAGER')) {
-            throw $this->createAccessDeniedException();
-        }
+//        if (!$this->security->isGranted('ROLE_ADMIN') && !$this->security->isGranted('ROLE_MANAGER')) {
+//            throw $this->createAccessDeniedException();
+//        }
 
         $feedback = new Feedback();
 
@@ -106,8 +106,8 @@ class FeedbackController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->em->persist($feedback);
-            $this->em->flush();
+//            $this->em->persist($feedback);
+//            $this->em->flush();
 
             $this->addFlash('success', 'Опрос успешно создан.');
 

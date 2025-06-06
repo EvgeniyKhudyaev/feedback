@@ -12,10 +12,12 @@ class FeedbackFieldOptionType extends AbstractType
     {
         $builder
             ->add('label', TextType::class, [
-                'label' => 'Опция'
-            ])
-            ->add('value', TextType::class, [
-                'label' => 'Значение'
+                'label' => 'Вариант',
+                'attr' => ['class' => 'form-control'],
             ]);
+//            ->add('value', TextType::class, [
+//                'label' => 'Значение',
+//                'attr' => ['class' => 'form-control'],
+//            ]);
     }
 }

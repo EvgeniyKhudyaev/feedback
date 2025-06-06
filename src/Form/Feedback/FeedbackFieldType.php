@@ -33,6 +33,7 @@ class FeedbackFieldType extends AbstractType
                 'label' => 'Тип',
                 'required' => true,
                 'choices' => FeedbackFieldTypeEnum::cases(),
+                'choice_value' => fn(?FeedbackFieldTypeEnum $choice) => $choice?->value,
                 'choice_label' => fn($choice) => match($choice) {
                     FeedbackFieldTypeEnum::INPUT => 'Текст',
                     FeedbackFieldTypeEnum::TEXTAREA => 'Многострочный текст',
@@ -71,8 +72,13 @@ class FeedbackFieldType extends AbstractType
                 'by_reference' => false,
                 'prototype' => true,
                 'prototype_name' => '__option__',
-                'entry_options' => ['label' => false],
+                'entry_options' => [
+                    'label' => false,
+//                    'row_attr' => ['class' => 'd-flex align-items-center option-item mb-2'],
+//                    'attr' => ['class' => 'form-control me-2'], // применится к каждому TextType
+                ],
                 'mapped' => false, // 🔧 если не работает с сущностями
+                'label' => false,
             ]);
     }
 

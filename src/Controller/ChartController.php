@@ -33,82 +33,76 @@ class ChartController extends AbstractController
         $fieldRepo = $em->getRepository(FeedbackField::class);
         $answerRepo = $em->getRepository(FeedbackFieldAnswer::class);
 
-        // Найдём все поля с типами: RATING, SELECT, RADIO
         $fields = $fieldRepo->createQueryBuilder('f')
-            ->where('f.type IN (:types)')
+            ->where('f.feedback = :feedback')
+            ->andWhere('f.type IN (:types)')
+            ->setParameter('feedback', $feedback)
             ->setParameter('types', [
                 FeedbackFieldTypeEnum::RATING,
                 FeedbackFieldTypeEnum::SELECT,
-                FeedbackFieldTypeEnum::RADIO
+                FeedbackFieldTypeEnum::RADIO,
             ])
             ->getQuery()
             ->getResult();
 
-        $charts = [];
+        $chartsRating = [];
+        $chartsOther = [];
 
-        /** @var FeedbackField $field */
         foreach ($fields as $field) {
             $answers = $answerRepo->findBy(['field' => $field]);
 
-            $optionLabels = [];
-            $counts = [];
-
-            // Если у поля есть опции, считаем по ним
-//            if ($field->getOptions()->count() > 0) {
-//                foreach ($field->getOptions() as $option) {
-//                    $label = $option->getLabel();
-//                    $optionLabels[$option->getId()] = $label;
-//                    $counts[$label] = 0;
-//                }
-//
-//                foreach ($answers as $answer) {
-//                    $selectedOptionId = $answer->getValue();
-//                    $label = $optionLabels[$selectedOptionId] ?? 'Неизвестно';
-//                    $counts[$label] = ($counts[$label] ?? 0) + 1;
-//                }
-//
-//                $charts[] = [
-//                    'question' => $field->getLabel(),
-//                    'labels' => array_keys($counts),
-//                    'data' => array_values($counts),
-//                ];
-//            }
-
-            // Если это поле RATING — считаем по числам от 1 до 5
             if ($field->getType() === FeedbackFieldTypeEnum::RATING) {
                 $ratingCounts = array_fill(1, 5, 0);
                 foreach ($answers as $answer) {
-                    $value = (int)$answer->getValue();
-                    if (isset($ratingCounts[$value])) {
-                        $ratingCounts[$value]++;
+                    $val = (int)$answer->getValue();
+                    if (isset($ratingCounts[$val])) {
+                        $ratingCounts[$val]++;
                     }
                 }
 
-                $charts[] = [
+                $chartsRating[] = [
                     'question' => $field->getLabel(),
-                    'labels' => ['1 ⭐️', '2 ⭐️⭐️', '3 ⭐️⭐️⭐️', '4 ⭐️⭐️⭐️⭐️', '5 ⭐️⭐️⭐️⭐️⭐️'],
+                    'labels' => ['1 ⭐️', '2 ⭐️', '3 ⭐️', '4 ⭐️', '5 ⭐️'],
                     'data' => array_values($ratingCounts),
+                    'type' => 'pie',
+                ];
+            } elseif ($field->getType() === FeedbackFieldTypeEnum::SELECT || $field->getType() === FeedbackFieldTypeEnum::RADIO) {
+                $optionLabels = [];
+                $counts = [];
+
+                foreach ($field->getOptions() as $option) {
+                    $label = $option->getLabel();
+                    $optionLabels[$option->getId()] = $label;
+                    $counts[$label] = 0;
+                }
+
+                foreach ($answers as $answer) {
+                    $selected = $answer->getValue();
+                    $label = $optionLabels[$selected] ?? 'Неизвестно';
+                    $counts[$label] = ($counts[$label] ?? 0) + 1;
+                }
+
+                $chartsOther[] = [
+                    'question' => $field->getLabel(),
+                    'labels' => array_keys($counts),
+                    'data' => array_values($counts),
+                    'type' => 'pie',
                 ];
             }
         }
 
-        $charts[] = [
-            'question' => 'Была ли консультация решением вашей проблемы?',
-            'labels' => ['Да', 'Частично', 'Нет'],
-            'data' => [1, 2, 0], // например, 10 "Да", 3 "Частично", 3 "Нет"
+        $lineChart = [
+            'question' => 'Количество отзывов по дням',
+            'labels' => ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+            'data' => [12, 19, 7, 5, 8, 14, 10],
+            'type' => 'line',
         ];
 
-        // Вопрос 2: "Насколько удобно работать с приложением?"
-        $charts[] = [
-            'question' => 'Как вы оцениваете удобство использования онлайн-консультации?',
-            'labels' => ['Очень неудобно', 'Неудобно', 'Нормально', 'Удобно', 'Очень удобно'],
-            'data' => [1, 0, 1, 1, 0], // примеры подсчётов ответов
-        ];
-
-        return $this->render('chart/charts.html.twig', [
-            'charts' => $charts,
+        return $this->render('chart/modern.html.twig', [
             'feedback' => $feedback,
-            'questionText' => 'test'
+            'chartsRating' => $chartsRating,
+            'chartsOther' => $chartsOther,
+            'lineChart' => $this->feedbackRepository->getCountByDayOfWeekChartData($feedback),
         ]);
     }
 

@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\DTO\Feedback\FeedbackFilterDto;
 use App\DTO\Feedback\FeedbackSortDto;
+use App\DTO\Report\ReportFilterDto;
+use App\DTO\Report\ReportSortDto;
 use App\Entity\Feedback\Feedback;
 use App\Entity\Feedback\FeedbackField;
 use App\Repository\FeedbackFieldAnswerRepository;
@@ -46,7 +48,13 @@ class ReportController extends AbstractController
     #[Route('/{feedback}/view', name: 'report_view')]
     public function view(Feedback $feedback, Request $request): Response
     {
-        $fields = $this->feedbackFieldRepository->findBy(['feedback' => $feedback]);
+        $allFields = $this->feedbackFieldRepository->findBy(['feedback' => $feedback]);
+        $fieldIds = $request->query->all('fields');
+
+        $fields = $fieldIds
+            ? array_filter($allFields, fn($f) => in_array($f->getId(), $fieldIds))
+            : $allFields;
+
         $answers = $this->feedbackFieldAnswerRepository->findAnswersByFeedback($feedback->getId());
 
         if ($request->query->get('export') === 'excel') {
@@ -59,6 +67,7 @@ class ReportController extends AbstractController
             'answers' => $answers,
         ]);
     }
+
 
     private function exportExcel($feedback, $fields, $answers): Response
     {
