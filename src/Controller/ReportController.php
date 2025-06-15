@@ -48,6 +48,9 @@ class ReportController extends AbstractController
     #[Route('/{feedback}/view', name: 'report_view')]
     public function view(Feedback $feedback, Request $request): Response
     {
+        $filters = new ReportFilterDto($request->query->all());
+        $sort = new ReportSortDto($request->query->all());
+
         $allFields = $this->feedbackFieldRepository->findBy(['feedback' => $feedback]);
         $fieldIds = $request->query->all('fields');
 
@@ -55,7 +58,7 @@ class ReportController extends AbstractController
             ? array_filter($allFields, fn($f) => in_array($f->getId(), $fieldIds))
             : $allFields;
 
-        $answers = $this->feedbackFieldAnswerRepository->findAnswersByFeedback($feedback->getId());
+        $answers = $this->feedbackFieldAnswerRepository->findAnswersByFeedback($feedback->getId(), $filters);
 
         if ($request->query->get('export') === 'excel') {
             return $this->exportExcel($feedback, $fields, $answers);
@@ -65,6 +68,7 @@ class ReportController extends AbstractController
             'feedback' => $feedback,
             'fields' => $fields,
             'answers' => $answers,
+            'filters' => $filters,
         ]);
     }
 

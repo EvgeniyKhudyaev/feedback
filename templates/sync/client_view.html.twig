@@ -3,16 +3,50 @@
 {% block title %}Клиент #{{ clientUser.id }}{% endblock %}
 
 {% block body %}
-    <h1>Информация о клиенте</h1>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ path('sync_client_index') }}">Список клиентов</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Клиент {{ clientUser.id }}
+            </li>
+        </ol>
+    </nav>
 
-    <div class="mb-4">
-        <ul>
-            <li><strong>ID:</strong> {{ clientUser.id }}</li>
-            <li><strong>Имя:</strong> {{ clientUser.name }}</li>
-            <li><strong>Email:</strong> {{ clientUser.email }}</li>
-            <li><strong>Статус:</strong> {{ statuses[clientUser.status.value] ?? 'Неизвестно' }}</li>
-            {# добавь другие поля, если нужно #}
-        </ul>
+    <h1 class="mb-4">
+        Клиент: {{ clientUser.name }}
+    </h1>
+
+    <div class="card mb-4">
+        <div class="card-header">Основная информация</div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">ID:</dt>
+                <dd class="col-sm-9">{{ clientUser.id }}</dd>
+
+                <dt class="col-sm-3">Имя:</dt>
+                <dd class="col-sm-9">{{ clientUser.name }}</dd>
+
+                <dt class="col-sm-3">Email:</dt>
+                <dd class="col-sm-9">{{ clientUser.email }}</dd>
+
+                <dt class="col-sm-3">Телефон:</dt>
+                <dd class="col-sm-9">{{ clientUser.phone ?: 'Не указано' }}</dd>
+
+                <dt class="col-sm-3">Телеграм:</dt>
+                <dd class="col-sm-9">{{ clientUser.telegram ?: 'Не указано' }}</dd>
+
+                <dt class="col-sm-3">Статус:</dt>
+                <dd class="col-sm-9">{{ statuses[clientUser.status.value] }}</dd>
+
+                <dt class="col-sm-3">Дата создания:</dt>
+                <dd class="col-sm-9">{{ clientUser.createdAt ? clientUser.createdAt|date('Y-m-d H:i:s') : 'N/A' }}</dd>
+
+                <dt class="col-sm-3">Дата обновления:</dt>
+                <dd class="col-sm-9">{{ clientUser.updatedAt ? clientUser.updatedAt|date('Y-m-d H:i:s') : 'N/A' }}</dd>
+            </dl>
+        </div>
     </div>
 
     <ul class="nav nav-tabs" id="clientTab" role="tablist">
@@ -22,43 +56,73 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="surveys-tab" data-bs-toggle="tab" data-bs-target="#surveys" type="button" role="tab">Опросники</button>
         </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">История</button>
-        </li>
     </ul>
 
     <div class="tab-content mt-3" id="clientTabContent">
         <div class="tab-pane fade show active" id="services" role="tabpanel" aria-labelledby="services-tab">
-            {% if clientServices is not empty %}
-                <ul>
+            <div class="accordion" id="servicesAccordion">
+                {% if clientServices is not empty %}
                     {% for service in clientServices %}
-                        <li>
-                            {{ service.name }} (с {{ service.startedAt|date('d.m.Y') }} по {{ service.endedAt ? service.endedAt|date('d.m.Y') : 'текущее время' }})
-                        </li>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ service.id }}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ service.id }}" aria-expanded="false" aria-controls="collapse{{ service.id }}">
+                                    {{ service.name }}
+                                </button>
+                            </h2>
+                            <div id="collapse{{ service.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ service.id }}" data-bs-parent="#servicesAccordion">
+                                <div class="accordion-body">
+                                    {% if service.serviceHistories is not empty %}
+                                        <ul>
+                                            {% for event in service.serviceHistories %}
+                                                <li>{{ event.createdAt|date('d.m.Y H:i') }} — {{ event.note }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="text-muted">История отсутствует.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                     {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-muted">Нет подключённых услуг.</p>
-            {% endif %}
+                {% else %}
+                    <p class="text-muted">Нет подключённых услуг.</p>
+                {% endif %}
+            </div>
         </div>
 
         <div class="tab-pane fade" id="surveys" role="tabpanel" aria-labelledby="surveys-tab">
             {% if clientSurveys is not empty %}
-                <ul class="list-group">
+                <div class="accordion" id="surveysAccordion">
                     {% for survey in clientSurveys %}
-                        <li class="list-group-item">
-                            <strong>{{ survey.value }}</strong> ({{ survey.createdAt|date('d.m.Y H:i') }})
-{#                            <details class="mt-2">#}
-{#                                <summary>Показать ответы</summary>#}
-{#                                <ul class="mt-2">#}
-{#                                    {% for answer in survey.answers %}#}
-{#                                        <li><strong>{{ answer.question }}</strong>: {{ answer.response }}</li>#}
-{#                                    {% endfor %}#}
-{#                                </ul>#}
-{#                            </details>#}
-                        </li>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="surveyHeading{{ loop.index }}">
+                                <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#surveyCollapse{{ loop.index }}"
+                                        aria-expanded="false"
+                                        aria-controls="surveyCollapse{{ loop.index }}">
+                                    {{ survey.name }} <span class="text-muted ms-2">({{ survey.created_at|date('d.m.Y H:i') }})</span>
+                                </button>
+                            </h2>
+                            <div id="surveyCollapse{{ loop.index }}" class="accordion-collapse collapse"
+                                 aria-labelledby="surveyHeading{{ loop.index }}"
+                                 data-bs-parent="#surveysAccordion">
+                                <div class="accordion-body">
+                                    {% if survey.answers is not empty %}
+                                        <dl class="row mb-0">
+                                            {% for answer in survey.answers %}
+                                                <dt class="col-sm-4">{{ answer.label }}</dt>
+                                                <dd class="col-sm-8">{{ answer.value|default('—') }}</dd>
+                                            {% endfor %}
+                                        </dl>
+                                    {% else %}
+                                        <p class="text-muted mb-0">Ответы отсутствуют.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                     {% endfor %}
-                </ul>
+                </div>
             {% else %}
                 <p class="text-muted">Нет пройденных опросов.</p>
             {% endif %}

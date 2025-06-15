@@ -1,4 +1,3 @@
-{# templates/chart/modern.html.twig #}
 {% extends 'base.html.twig' %}
 
 {% block title %}Графики опроса — {{ feedback.name }}{% endblock %}
@@ -130,26 +129,45 @@
         {% endfor %}
 
         {% for chart in chartsOther %}
-        new Chart(document.getElementById('chartOther{{ loop.index }}'), {
-            type: 'pie',
-            data: {
-                labels: {{ chart.labels|json_encode|raw }},
-                datasets: [{
-                    data: {{ chart.data|json_encode|raw }},
-                    backgroundColor: [
-                        '#4e79a7', '#f28e2b', '#e15759',
-                        '#76b7b2', '#59a14f', '#edc948',
-                        '#b07aa1', '#ff9da7', '#9c755f', '#bab0ab'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' }
+        (function(){
+            const ctx = document.getElementById('chartOther{{ loop.index }}').getContext('2d');
+            const labels = {{ chart.labels|json_encode|raw }};
+            const data = {{ chart.data|json_encode|raw }};
+            const code = "{{ chart.code|e('js') }}";
+            const questionId = {{ chart.id }};
+            // Генерируем базовый URL с правильным feedback id
+            const baseUrl = "{{ path('report_view', {'feedback': feedback.id}) }}";
+
+            const chartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#4e79a7', '#f28e2b', '#e15759',
+                            '#76b7b2', '#59a14f', '#edc948',
+                            '#b07aa1', '#ff9da7', '#9c755f', '#bab0ab'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    onClick: function (event, elements) {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const label = this.data.labels[index];
+                            // Строим полный URL с GET-параметрами question_id и answer
+                            const url = baseUrl + "?filter_code_" + code + "=" + encodeURIComponent(label);
+                            window.location.href = url;
+                        }
+                    }
                 }
-            }
-        });
+            });
+        })();
         {% endfor %}
 
         new Chart(document.getElementById('lineChartCanvas'), {

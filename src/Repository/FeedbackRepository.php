@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\DTO\Feedback\FeedbackFilterDto;
 use App\DTO\Feedback\FeedbackSortDto;
 use App\Entity\Feedback\Feedback;
+use App\Entity\Feedback\FeedbackFieldAnswer;
 use App\Entity\Feedback\FeedbackManager;
 use App\Enum\UserRoleEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -20,6 +21,40 @@ class FeedbackRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Feedback::class);
+    }
+
+    public function getFeedbackWithAnswersByClient(int $clientId): array
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder();
+
+        $qb->select('f.id AS feedback_id', 'f.name AS feedback_name', 'ffa.createdAt AS answered_at', 'ff.label AS question_label', 'ffa.value AS answer_value')
+            ->from(FeedbackFieldAnswer::class, 'ffa')
+            ->join('ffa.field', 'ff')
+            ->join('ff.feedback', 'f')
+            ->where('ffa.responder = :clientId')
+            ->setParameter('clientId', $clientId)
+            ->orderBy('f.createdAt', 'DESC')
+            ->addOrderBy('ff.sortOrder', 'ASC');
+
+        $rows = $qb->getQuery()->getArrayResult();
+
+        $grouped = [];
+        foreach ($rows as $row) {
+            $id = $row['feedback_id'];
+            if (!isset($grouped[$id])) {
+                $grouped[$id] = [
+                    'name' => $row['feedback_name'],
+                    'created_at' => $row['answered_at'],
+                    'answers' => [],
+                ];
+            }
+            $grouped[$id]['answers'][] = [
+                'label' => $row['question_label'],
+                'value' => $row['answer_value'],
+            ];
+        }
+
+        return array_values($grouped);
     }
 
     public function getCountByDayOfWeekChartData(Feedback $feedback): array

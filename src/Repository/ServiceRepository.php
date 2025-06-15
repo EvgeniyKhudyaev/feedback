@@ -16,6 +16,22 @@ class ServiceRepository extends ServiceEntityRepository
         parent::__construct($registry, Service::class);
     }
 
+    public function findServices(int $clientUserId): array
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+
+        $qb->select('s', 'sh')
+            ->from(Service::class, 's')
+            ->join('s.serviceHistories', 'sh')
+            ->where('sh.creator = :clientUser')
+            ->setParameter('clientUser', $clientUserId)
+            ->orderBy('s.id', 'ASC')
+            ->addOrderBy('sh.createdAt', 'ASC');
+
+        return $qb->getQuery()->getResult();
+    }
+
     //    /**
     //     * @return Service[] Returns an array of Service objects
     //     */

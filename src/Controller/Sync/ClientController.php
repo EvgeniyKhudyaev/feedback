@@ -2,11 +2,13 @@
 
 namespace App\Controller\Sync;
 
+use App\Entity\Feedback\Feedback;
 use App\Entity\Feedback\FeedbackFieldAnswer;
 use App\Entity\Sync\ClientUser;
 use App\Enum\Shared\StatusEnum;
 use App\Repository\ClientUserRepository;
 use App\Repository\FeedbackFieldAnswerRepository;
+use App\Repository\FeedbackRepository;
 use App\Repository\ServiceHistoryRepository;
 use App\Repository\ServiceRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,6 +26,7 @@ class ClientController extends AbstractController
         private readonly ServiceRepository $serviceRepository,
         private readonly FeedbackFieldAnswerRepository $feedbackFieldAnswerRepository,
         private readonly ServiceHistoryRepository $serviceHistoryRepository,
+        private readonly FeedbackRepository $feedbackRepository,
         private readonly EntityManagerInterface $em,
 
     ) {
@@ -32,13 +35,14 @@ class ClientController extends AbstractController
     #[Route('/{id}/view', name: 'sync_client_view', methods: ['GET'])]
     public function view(ClientUser $clientUser)
     {
-//        $clientServices = $this->serviceRepository->findBy(['clientUser' => $clientUser]);
-        $clientSurveys = $this->feedbackFieldAnswerRepository->findBy(['responder' => $clientUser]);
+        $clientServices = $this->serviceRepository->findServices($clientUser->getId());
+        $clientSurveys = $this->feedbackRepository->getFeedbackWithAnswersByClient($clientUser->getId());
         $clientHistory = $this->serviceHistoryRepository->findBy(['creator' => $clientUser], ['createdAt' => 'DESC']);
 
+//        dd($clientSurveys);
         return $this->render('sync/client_view.html.twig', [
             'clientUser' => $clientUser,
-            'clientServices' => [],
+            'clientServices' => $clientServices,
             'clientSurveys' => $clientSurveys,
             'clientHistory' => $clientHistory,
             'statuses' => StatusEnum::getChoices(),

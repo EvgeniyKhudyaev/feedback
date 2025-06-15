@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import 'macros/table.twig' as table %}
 
 {% block title %}Отчет по форме: {{ feedback.name }}{% endblock %}
 
@@ -32,21 +33,51 @@
         </form>
     </div>
 
+<form method="get" id="filtersForm" novalidate>
     <table class="table table-bordered table-striped">
-        <thead>
+        <thead class="align-middle">
         <tr>
             <th>#</th>
             <th>Дата</th>
             <th>Клиент</th>
             {% for field in fields %}
-                <th class="field-col field-{{ field.id }}">{{ field.label }}</th>
+                <th class="field-col field-{{ field.id }} text-wrap text-break" style="max-width: 200px; min-width: 150px;">
+                    {{ field.label }}
+                </th>
+            {% endfor %}
+        </tr>
+        <tr>
+            <th></th>
+            <th>
+                {{ table.filter_date({
+                    idFrom: 'filter_created_from',
+                    nameFrom: 'filter_created_from',
+                    valueFrom: filters.createdFrom ? filters.createdFrom|date('Y-m-d') : '',
+                    idTo: 'filter_created_to',
+                    nameTo: 'filter_created_to',
+                    valueTo: filters.createdTo ? filters.createdTo|date('Y-m-d') : ''
+                }) }}
+            </th>
+            <th>
+                {{ table.filter_input('filter_name_id', 'filter_name', filters.clientName, '', 'auto-submit') }}
+            </th>
+            {% for field in fields %}
+                <th class="field-col field-{{ field.id }}">
+                    {{ table.filter_input(
+                        'filter_code_' ~ field.code ~ '_id',
+                        'filter_code_' ~ field.code,
+                        filters.codeFilters[field.code]|default(''),
+                        '',
+                        'auto-submit'
+                    ) }}
+                </th>
             {% endfor %}
         </tr>
         </thead>
         <tbody>
         {% for submissionId, answerRow in answers %}
             <tr>
-                <td>{{ submissionId }}</td>
+                <td>{{ submissionId + 1 }}</td>
                 <td>{{ answerRow[fields[0].label][1]|date('Y-m-d H:i') }}</td>
                 {% set clientId = answerRow[fields[0].label][3]|default(null) %}
                 <td>
@@ -60,7 +91,9 @@
                 </td>
 
                 {% for field in fields %}
-                    <td class="field-col field-{{ field.id }}">{{ answerRow[field.label][0]|default('—') }}</td>
+                    <td class="field-col field-{{ field.id }} text-wrap text-break" style="max-width: 200px; min-width: 150px; white-space: normal;">
+                        {{ answerRow[field.label][0]|default('—') }}
+                    </td>
                 {% endfor %}
             </tr>
         {% else %}
@@ -70,6 +103,7 @@
         {% endfor %}
         </tbody>
     </table>
+</form>
 
     {# Модалка выбора полей #}
     <div class="modal fade" id="fieldModal" tabindex="-1" aria-labelledby="fieldModalLabel" aria-hidden="true">
