@@ -2,13 +2,13 @@
 
 namespace App\Entity\Feedback;
 
+use App\Enum\Shared\StatusEnum;
 use App\Repository\FeedbackFieldOptionRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FeedbackFieldOptionRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class FeedbackFieldOption
 {
     #[ORM\Id]
@@ -16,30 +16,36 @@ class FeedbackFieldOption
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::GUID)]
+    #[ORM\Column(type: Types::GUID, unique: true, nullable: false)]
     private ?string $uuid = null;
 
     #[ORM\ManyToOne(inversedBy: 'feedbackFieldOptions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?FeedbackField $field = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: false)]
     private ?string $label = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: false)]
     private ?string $value = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer', nullable: false)]
     private ?int $sortOrder = null;
 
-    #[ORM\Column(length: 50)]
-    private ?string $status = null;
+    #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: StatusEnum::class)]
+    private ?StatusEnum $status;
 
-    #[ORM\Column]
-    private ?\DateTime $createdAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\Column]
-    private ?\DateTime $updatedAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    private ?\DateTimeInterface $updatedAt = null;
+
+
+    public function __construct()
+    {
+        $this->status = StatusEnum::ACTIVE;
+    }
 
 
     public function getId(): ?int
@@ -107,39 +113,48 @@ class FeedbackFieldOption
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): ?StatusEnum
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(StatusEnum $status): static
     {
         $this->status = $status;
 
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTime $createdAt): static
+    public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTime
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTime $updatedAt): static
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
 
         return $this;
     }
+
+    #[ORM\PrePersist]
+    public function generateCode(): void
+    {
+        if (empty($this->value)) {
+            $this->value = $this->label;
+        }
+    }
+
 }

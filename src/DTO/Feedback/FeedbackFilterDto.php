@@ -2,7 +2,6 @@
 
 namespace App\DTO\Feedback;
 
-
 class FeedbackFilterDto
 {
     public ?int $id = null;

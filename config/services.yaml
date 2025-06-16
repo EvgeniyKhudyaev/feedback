@@ -20,10 +20,13 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # Add Doctrine Timestamp Listener service
-    App\EventListener\DoctrineTimestampListener:
+    App\EventSubscriber\DoctrineTimestampSubscriber:
         tags:
             - { name: doctrine.event_listener, event: prePersist }
             - { name: doctrine.event_listener, event: preUpdate }
+
+    App\EventSubscriber\UuidSubscriber:
+        tags:
+            - { name: doctrine.event_listener, event: prePersist }
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

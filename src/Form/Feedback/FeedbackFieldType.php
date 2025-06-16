@@ -74,10 +74,7 @@ class FeedbackFieldType extends AbstractType
                 'prototype_name' => '__option__',
                 'entry_options' => [
                     'label' => false,
-//                    'row_attr' => ['class' => 'd-flex align-items-center option-item mb-2'],
-//                    'attr' => ['class' => 'form-control me-2'], // применится к каждому TextType
                 ],
-                'mapped' => false, // 🔧 если не работает с сущностями
                 'label' => false,
             ]);
     }

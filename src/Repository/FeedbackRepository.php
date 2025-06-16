@@ -171,48 +171,4 @@ ORDER BY dow
 
         return $qb;
     }
-
-
-    public function countUniqueClientsForFeedback(int $feedbackId): int
-    {
-        $entityManager = $this->getEntityManager();
-
-        $dql = "
-        SELECT COUNT(DISTINCT answer.responder)
-        FROM App\Entity\Feedback\FeedbackFieldAnswer answer
-        JOIN answer.field field
-        JOIN field.feedback feedback
-        WHERE feedback.id = :feedbackId
-    ";
-
-        $query = $entityManager->createQuery($dql)
-            ->setParameter('feedbackId', $feedbackId);
-
-        return (int) $query->getSingleScalarResult();
-    }
-
-    //    /**
-    //     * @return Feedback[] Returns an array of Feedback objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('f')
-    //            ->andWhere('f.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('f.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Feedback
-    //    {
-    //        return $this->createQueryBuilder('f')
-    //            ->andWhere('f.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
 }

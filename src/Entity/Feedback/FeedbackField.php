@@ -8,9 +8,11 @@ use App\Repository\FeedbackFieldRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FeedbackFieldRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class FeedbackField
 {
     #[ORM\Id]
@@ -18,10 +20,10 @@ class FeedbackField
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::GUID)]
+    #[ORM\Column(type: Types::GUID, unique: true, nullable: false)]
     private ?string $uuid = null;
 
-    #[ORM\ManyToOne(inversedBy: 'feedbackFields')]
+    #[ORM\ManyToOne(targetEntity: Feedback::class, inversedBy: 'fields')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Feedback $feedback = null;
 
@@ -29,9 +31,11 @@ class FeedbackField
     private ?string $code = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: false)]
+    #[Assert\NotBlank(message: 'Вопрос не должен быть пустым.')]
     private ?string $label = null;
 
     #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: FeedbackFieldTypeEnum::class)]
+    #[Assert\NotBlank(message: 'Тип вопроса не должен быть пустым.')]
     private ?FeedbackFieldTypeEnum $type = null;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
@@ -58,11 +62,17 @@ class FeedbackField
     /**
      * @var Collection<int, FeedbackFieldOption>
      */
-    #[ORM\OneToMany(targetEntity: FeedbackFieldOption::class, mappedBy: 'field')]
+    #[ORM\OneToMany(
+        targetEntity: FeedbackFieldOption::class,
+        mappedBy: 'field',
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true
+    )]
     private Collection $options;
 
     public function __construct()
     {
+        $this->status = StatusEnum::ACTIVE;
         $this->feedbackFieldValues = new ArrayCollection();
         $this->options = new ArrayCollection();
     }
@@ -255,5 +265,20 @@ class FeedbackField
     public function hasOptions(): bool
     {
         return !$this->options->isEmpty();
+    }
+
+    #[ORM\PrePersist]
+    public function generateCode(): void
+    {
+        if (empty($this->code)) {
+            $this->code = substr(hash('sha256', $this->label), 0, 8) . "_$this->sortOrder";
+        }
+    }
+
+    public function normalizeOptionsSortOrder(): void
+    {
+        foreach ($this->getOptions() as $index => $option) {
+            $option->setSortOrder($index + 1);
+        }
     }
 }

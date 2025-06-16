@@ -165,4 +165,16 @@ class FeedbackFieldAnswerRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    public function countUniqueClientsForFeedback(int $feedbackId): int
+    {
+        $qb = $this->createQueryBuilder('answer')
+            ->select('COUNT(DISTINCT answer.responder)')
+            ->join('answer.field', 'field')
+            ->join('field.feedback', 'feedback')
+            ->where('feedback.id = :feedbackId')
+            ->setParameter('feedbackId', $feedbackId);
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
 }

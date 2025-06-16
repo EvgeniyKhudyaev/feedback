@@ -10,12 +10,13 @@ use App\Enum\Feedback\FeedbackTypeEnum;
 use App\Enum\Shared\StatusEnum;
 use App\Enum\UserRoleEnum;
 use App\Form\Feedback\FeedbackType;
+use App\Repository\FeedbackFieldAnswerRepository;
 use App\Repository\FeedbackRepository;
 use App\Repository\ServiceRepository;
 use App\Repository\UserRepository;
 use App\Service\Feedback\FeedbackEditorManager;
+use App\Service\Feedback\FeedbackService;
 use Doctrine\ORM\EntityManagerInterface;
-use Knp\Component\Pager\PaginatorInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -33,15 +34,16 @@ class FeedbackController extends AbstractController
         private readonly FeedbackRepository $feedbackRepository,
         private readonly UserRepository  $userRepository,
         private readonly ServiceRepository $serviceRepository,
+        private readonly FeedbackFieldAnswerRepository $feedbackFieldAnswerRepository,
+        private readonly FeedbackService               $feedbackService,
         private readonly Security $security,
         private readonly EntityManagerInterface $em,
     )
     {
     }
 
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[Route('/', name: 'admin_feedback_index')]
-    public function index(Request $request, PaginatorInterface $paginator): Response
+    public function index(Request $request): Response
     {
         if (!$this->security->isGranted('ROLE_ADMIN') && !$this->security->isGranted('ROLE_MANAGER')) {
             throw $this->createAccessDeniedException();
@@ -49,17 +51,7 @@ class FeedbackController extends AbstractController
 
         $filters = new FeedbackFilterDto($request->query->all());
         $sort = new FeedbackSortDto($request->query->all());
-        $user = $this->security->getUser();
-
-        $qb = $this->feedbackRepository->getFilteredQueryBuilder($filters);
-        $qb = $this->feedbackRepository->applySorting($qb, $sort);
-        $qb = $this->feedbackRepository->applyAccessCondition($qb, $user);
-
-        $pagination = $paginator->paginate(
-            $qb,
-            $request->query->getInt('page', 1),
-            10
-        );
+        $pagination = $this->feedbackService->getFilteredPagination($filters, $sort, $request->query->getInt('page', 1));
 
         return $this->render('admin/feedback/index.html.twig', [
             'pagination'    => $pagination,
@@ -75,12 +67,11 @@ class FeedbackController extends AbstractController
     #[Route('/{id}', name: 'admin_feedback_view', requirements: ['id' => '\d+'])]
     public function view(Feedback $feedback): Response
     {
-//        $user = $this->security->getUser();
-//        if (!$this->security->isGranted('ROLE_ADMIN') && !$feedback->hasEditor($user)) {
-//            throw $this->createAccessDeniedException();
-//        }
+        if (!$this->security->isGranted('ROLE_ADMIN') && !$feedback->hasEditor($this->security->getUser())) {
+            throw $this->createAccessDeniedException();
+        }
 
-        $timesCompleted = $this->feedbackRepository->countUniqueClientsForFeedback($feedback->getId());
+        $timesCompleted = $this->feedbackFieldAnswerRepository->countUniqueClientsForFeedback($feedback->getId());
 
         return $this->render('admin/feedback/view.html.twig', [
             'feedback' => $feedback,
@@ -94,24 +85,27 @@ class FeedbackController extends AbstractController
     #[Route('/create', name: 'admin_feedback_create', methods: ['GET', 'POST'])]
     public function create(Request $request): Response
     {
-//        if (!$this->security->isGranted('ROLE_ADMIN') && !$this->security->isGranted('ROLE_MANAGER')) {
-//            throw $this->createAccessDeniedException();
-//        }
+        if (!$this->security->isGranted('ROLE_ADMIN') && !$this->security->isGranted('ROLE_MANAGER')) {
+            throw $this->createAccessDeniedException();
+        }
 
         $feedback = new Feedback();
-
-        $form = $this->createForm(FeedbackType::class, $feedback, [
-            'csrf_protection' => false,
-        ]);
+        $form = $this->createForm(FeedbackType::class, $feedback);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-//            $this->em->persist($feedback);
-//            $this->em->flush();
+            try {
+                $feedback->normalizeFieldsSortOrder();
+                $this->em->persist($feedback);
+                $this->em->flush();
 
-            $this->addFlash('success', 'Опрос успешно создан.');
+                $this->addFlash('success', 'Опрос успешно создан.');
 
-            return $this->redirectToRoute('admin_feedback_index');
+                return $this->redirectToRoute('admin_feedback_index');
+            } catch (\Exception $e) {
+                $this->logger->error('Ошибка при сохранении опроса: ' . $e->getMessage());
+                $this->addFlash('danger', 'Произошла ошибка при сохранении опроса. Попробуйте позже.');
+            }
         }
 
         return $this->render('admin/feedback/create.html.twig', [
@@ -121,9 +115,34 @@ class FeedbackController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'admin_feedback_edit', methods: ['GET', 'POST'])]
-    public function edit(Feedback $feedback): Response
+    public function edit(Request $request, Feedback $feedback): Response
     {
-        // Редактирование опросника
+        if (!$this->security->isGranted('ROLE_ADMIN') && !$this->security->isGranted('ROLE_MANAGER')) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $form = $this->createForm(FeedbackType::class, $feedback);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $feedback->normalizeFieldsSortOrder();
+                $this->em->persist($feedback); // persist необязателен для уже существующего объекта, но можно оставить
+                $this->em->flush();
+
+                $this->addFlash('success', 'Опрос успешно обновлён.');
+
+                return $this->redirectToRoute('admin_feedback_index');
+            } catch (\Exception $e) {
+                $this->logger->error('Ошибка при сохранении опроса: ' . $e->getMessage());
+                $this->addFlash('danger', 'Произошла ошибка при сохранении опроса. Попробуйте позже.');
+            }
+        }
+
+        return $this->render('admin/feedback/edit.html.twig', [
+            'form' => $form->createView(),
+            'field_prototype' => $form->createView()->children['fields']->vars['prototype'],
+        ]);
     }
 
     #[IsGranted('IS_AUTHENTICATED_FULLY')]

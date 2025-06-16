@@ -18,7 +18,7 @@ class FeedbackSortDto
         }
 
         if (!in_array($this->field, $this->allowedFields, true)) {
-            $this->field = 'id';
+            $this->field = 'f.id';
         }
     }
 }

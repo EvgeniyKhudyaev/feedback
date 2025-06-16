@@ -42,8 +42,8 @@ class MessageLog
     #[ORM\Column(type: Types::TEXT)]
     private ?string $error = null;
 
-    #[ORM\Column]
-    private ?\DateTime $sentAt = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    private ?\DateTimeInterface $sentAt = null;
 
     public function getId(): ?int
     {
@@ -146,12 +146,12 @@ class MessageLog
         return $this;
     }
 
-    public function getSentAt(): ?\DateTime
+    public function getSentAt(): ?\DateTimeInterface
     {
         return $this->sentAt;
     }
 
-    public function setSentAt(\DateTime $sentAt): static
+    public function setSentAt(\DateTimeInterface $sentAt): static
     {
         $this->sentAt = $sentAt;
 

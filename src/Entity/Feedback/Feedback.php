@@ -10,12 +10,17 @@ use App\Repository\FeedbackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
+use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
-use Ramsey\Uuid\Guid\Guid;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: FeedbackRepository::class)]
 #[ORM\Table(name: '`feedback`')]
+#[UniqueEntity(
+    fields: ['name'],
+    message: 'Опрос с таким названием уже существует.'
+)]
 class Feedback
 {
     #[ORM\Id]
@@ -27,12 +32,14 @@ class Feedback
     private ?string $uuid = null;
 
     #[ORM\Column(length: 255, unique: true, nullable: false)]
+    #[Assert\NotBlank(message: 'Название опроса не должно быть пустым.')]
     private ?string $name = null;
 
     #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: FeedbackTypeEnum::class)]
     private ?FeedbackTypeEnum $type = null;
 
     #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: FeedbackScopeEnum::class)]
+    #[Assert\NotBlank(message: 'Область опроса не должна быть пустой.')]
     private ?FeedbackScopeEnum $scope = null;
 
     #[ORM\Column(type: 'string', length: 50, nullable: false, enumType: StatusEnum::class)]
@@ -47,7 +54,8 @@ class Feedback
     /**
      * @var Collection<int, FeedbackField>
      */
-    #[ORM\OneToMany(targetEntity: FeedbackField::class, mappedBy: 'feedback', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: FeedbackField::class, mappedBy: 'feedback', cascade: ['persist'], orphanRemoval: true)]
+    #[Assert\Count(min: 1, minMessage: "Должен быть указан хотя бы один вопрос.")]
     private Collection $fields;
 
     /**
@@ -62,9 +70,6 @@ class Feedback
     #[ORM\OneToMany(targetEntity: FeedbackTarget::class, mappedBy: 'feedback')]
     private Collection $feedbackTargets;
 
-    #[ORM\OneToMany(targetEntity: FeedbackField::class, mappedBy: 'feedback')]
-    private Collection $feedbackFields;
-
     /**
      * @var Collection<int, MessageLog>
      */
@@ -73,14 +78,11 @@ class Feedback
 
     public function __construct()
     {
-        $this->uuid = Guid::uuid4()->toString();
         $this->type = FeedbackTypeEnum::SURVEY;
-        $this->scope = FeedbackScopeEnum::GLOBAL;
         $this->status = StatusEnum::ACTIVE;
         $this->fields = new ArrayCollection();
         $this->feedbackEditors = new ArrayCollection();
         $this->feedbackTargets = new ArrayCollection();
-        $this->feedbackFields = new ArrayCollection();
         $this->messageLogs = new ArrayCollection();
     }
 
@@ -268,33 +270,6 @@ class Feedback
         return $this;
     }
 
-    public function getFeedbackFields(): Collection
-    {
-        return $this->feedbackFields;
-    }
-
-    public function addFeedbackFields(FeedbackTarget $feedbackFields): static
-    {
-        if (!$this->feedbackFields->contains($feedbackFields)) {
-            $this->feedbackFields->add($feedbackFields);
-            $feedbackFields->setFeedback($this);
-        }
-
-        return $this;
-    }
-
-    public function removeFeedbackFields(FeedbackTarget $feedbackFields): static
-    {
-        if ($this->feedbackFields->removeElement($feedbackFields)) {
-            // set the owning side to null (unless already changed)
-            if ($feedbackFields->getFeedback() === $this) {
-                $feedbackFields->setFeedback(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function hasEditor(UserInterface $user): bool
     {
         return $this->getActiveFeedbackEditors()->exists(
@@ -330,5 +305,13 @@ class Feedback
         }
 
         return $this;
+    }
+
+    public function normalizeFieldsSortOrder(): void
+    {
+        foreach ($this->getFields() as $index => $field) {
+            $field->setSortOrder($index + 1);
+            $field->normalizeOptionsSortOrder();
+        }
     }
 }

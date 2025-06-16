@@ -18,7 +18,7 @@ class FeedbackFieldAnswer
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::GUID)]
+    #[ORM\Column(type: Types::GUID, unique: true, nullable: false)]
     private ?string $uuid = null;
 
     #[ORM\ManyToOne(inversedBy: 'feedbackFieldValues')]

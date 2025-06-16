@@ -1,12 +1,12 @@
 <?php
 
-namespace App\EventListener;
+namespace App\EventSubscriber;
 
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Events;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 
-class DoctrineTimestampListener implements EventSubscriber
+class DoctrineTimestampSubscriber implements EventSubscriber
 {
     public function getSubscribedEvents(): array
     {
