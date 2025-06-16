@@ -7,7 +7,6 @@ use Doctrine\ORM\Events;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Ramsey\Uuid\Guid\Guid;
 
-
 class UuidSubscriber implements EventSubscriber
 {
     public function getSubscribedEvents(): array
@@ -19,7 +18,7 @@ class UuidSubscriber implements EventSubscriber
     {
         $entity = $args->getObject();
 
-        if (empty($entity->getUuid())) {
+        if (method_exists($entity, 'getUuid') && empty($entity->getUuid())) {
             $entity->setUuid(Guid::uuid4()->toString());
         }
     }

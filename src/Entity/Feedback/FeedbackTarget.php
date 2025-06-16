@@ -2,13 +2,18 @@
 
 namespace App\Entity\Feedback;
 
+use App\Entity\Sync\Service;
 use App\Enum\Feedback\FeedbackTargetTypeEnum;
 use App\Repository\FeedbackTargetRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FeedbackTargetRepository::class)]
 class FeedbackTarget
 {
+    public const STATUS_ACTIVE = true;
+    public const STATUS_INACTIVE = false;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -27,10 +32,10 @@ class FeedbackTarget
     #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => true])]
     private ?bool $isActive = true;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $updatedAt = null;
 
     public function getId(): ?int
@@ -74,7 +79,7 @@ class FeedbackTarget
         return $this;
     }
 
-    public function isActive(): ?bool
+    public function getIsActive(): ?bool
     {
         return $this->isActive;
     }
@@ -108,5 +113,16 @@ class FeedbackTarget
         $this->updatedAt = $updatedAt;
 
         return $this;
+    }
+
+    public static function create(int $targetId, Feedback $feedback): static
+    {
+        $feedbackManager = new static();
+        $feedbackManager->setTarget($targetId);
+        $feedbackManager->setFeedback($feedback);
+        $feedbackManager->setIsActive(static::STATUS_ACTIVE);
+        $feedbackManager->setTargetType(FeedbackTargetTypeEnum::SERVICE);
+
+        return $feedbackManager;
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\Entity\Feedback\Feedback;
+use App\Entity\Feedback\FeedbackTarget;
 use App\Entity\Sync\Service;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -32,28 +34,14 @@ class ServiceRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    //    /**
-    //     * @return Service[] Returns an array of Service objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function findTargetServicesByFeedback(Feedback $feedback): array
+    {
+        /** @var FeedbackTarget $target */
+        $targetIds = array_map(
+            fn($target) => (int)$target->getTarget(),
+            $feedback->getActiveTargets()->toArray()
+        );
 
-    //    public function findOneBySomeField($value): ?Service
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        return $this->findBy(['id' => $targetIds]);
+    }
 }

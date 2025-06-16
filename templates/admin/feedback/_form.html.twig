@@ -36,24 +36,30 @@
      data-prototype="{{ form_widget(form.fields.vars.prototype, {'label': false})|e('html_attr') }}">
     {% for field in form.fields %}
         <div class="mb-3 border rounded p-3 position-relative field-block">
-            {{ form_label(field.label, null, {'label_attr': {'class': 'form-label fw-semibold mb-2'}}) }}
-            {{ form_widget(field.label, {'attr': {'class': 'form-control', 'style': 'max-width: 400px;'}}) }}
+            {{ form_label(field.label, null) }}
+            {{ form_widget(field.label) }}
             {{ form_errors(field.label) }}
 
-            {{ form_label(field.type, null, {'label_attr': {'class': 'form-label fw-semibold mb-2 mt-3'}}) }}
-            {{ form_widget(field.type, {'attr': {'class': 'form-select d-inline-block type-select', 'style': 'max-width: 200px;'}}) }}
+            {{ form_label(field.type, null) }}
+            {{ form_widget(field.type) }}
             {{ form_errors(field.type) }}
 
-            {{ form_widget(field.required, {'attr': {'class': 'form-check-input'}}) }}
-            {{ form_label(field.required, null, {'label_attr': {'class': 'form-check-label fw-semibold me-2'}}) }}
+            <div style="display: flex;">
+                {{ form_label(field.required, null) }}
+                {{ form_widget(field.required) }}
+            </div>
             {{ form_errors(field.required) }}
 
             <div class="options-wrapper mt-3"
                  data-prototype="{{ form_widget(field.options.vars.prototype, {'label': false})|e('html_attr') }}">
                 {% for option in field.options %}
-                    <div class="option-item mb-2 d-flex align-items-center">
-                        {{ form_widget(option.label, {'attr': {'class': 'form-control', 'style': 'max-width: 400px;'}}) }}
-                        <button type="button" class="btn btn-danger btn-sm ms-2" onclick="removeOption(this)">Удалить вариант ответа</button>
+                    <div class="option-item mb-2">
+                        {{ form_label(option.label) }}
+                        <div class="d-flex align-items-center">
+                            {{ form_widget(option.label) }}
+                            <button type="button" class="btn btn-danger btn-sm ms-2 my-button bi bi-trash" onclick="removeOption(this)"></button>
+                        </div>
+                        {{ form_errors(option.label) }}
                     </div>
                 {% endfor %}
                 <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="addOption(this)">Добавить вариант ответа</button>

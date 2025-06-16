@@ -30,7 +30,6 @@
             {% endif %}
         </h1>
 
-
         <div class="mb-4">
             <a href="{{ path('admin_feedback_edit', {id: feedback.id}) }}" class="btn btn-primary me-2">
                 Редактировать
@@ -40,9 +39,11 @@
                 Менеджеры
             </button>
 
-            <button type="button" class="btn btn-success me-2" id="loadRelationsModal" data-id="{{ feedback.id }}" data-bs-toggle="modal" data-bs-target="#relationsModal">
-                Связи
-            </button>
+            {% if feedback.scope.value == 'linked' %}
+                <button type="button" class="btn btn-success me-2" id="loadRelationsModal" data-id="{{ feedback.id }}" data-bs-toggle="modal" data-bs-target="#relationsModal">
+                    Связи
+                </button>
+            {% endif %}
         </div>
 
         <div class="card mb-4">
@@ -79,9 +80,9 @@
         <div class="card mb-4">
             <div class="card-header">Менеджеры</div>
             <div class="card-body">
-                {% if feedback.activeFeedbackEditors is not empty %}
+                {% if feedback.activeEditors is not empty %}
                     <ul class="list-group" id="managersList">
-                        {% for manager in feedback.activeFeedbackEditors %}
+                        {% for manager in feedback.activeEditors %}
                             <li class="list-group-item">
                                 <a href="{{ path('admin_user_view', { id: manager.editor.id }) }}">
                                     {{ manager.editor.name }}
@@ -95,23 +96,24 @@
             </div>
         </div>
 
-        <div class="card mb-4">
-            <div class="card-header">Связи</div>
-            <div class="card-body">
-                {% if false %}
-                    <ul class="list-group">
-                        {% for field in feedback.fields %}
-                            <li class="list-group-item d-flex justify-content-between">
-                                <strong>{{ field.name }}</strong>
-                                <span>{{ field.value }}</span>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-muted">Нет связей.</p>
-                {% endif %}
+        {% if feedback.scope.value == 'linked' %}
+            <div class="card mb-4">
+                <div class="card-header">Связи</div>
+                <div class="card-body">
+                    {% if feedback.activeTargets is not empty %}
+                        <ul class="list-group" id="managersList">
+                            {% for target in targetServices %}
+                                <li class="list-group-item">
+                                    {{ target.name }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">Связи не добавлены.</p>
+                    {% endif %}
+                </div>
             </div>
-        </div>
+        {% endif %}
 
         <div class="modal fade" id="managersModal" tabindex="-1" aria-labelledby="managersModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg">

@@ -29,27 +29,30 @@ class FeedbackController extends AbstractController
 
     #[Route('/{feedback}/answer/{clientUser}/{token}', name: 'feedback_answer', methods: ['GET', 'POST'])]
     public function answer(Feedback $feedback, ClientUser $clientUser, string $token, Request $request): RedirectResponse|Response
-//    #[Route('/{feedback}/answer', name: 'feedback_answer', methods: ['GET', 'POST'])]
-//    public function answer(Feedback $feedback, Request $request): RedirectResponse|Response
     {
-//        $expectedToken = substr(md5($clientUser->getUuid()), 0, 6);
-//        if ($token !== $expectedToken) {
-//            throw $this->createAccessDeniedException('Неверный токен доступа');
-//        }
-//
-//        $existingAnswer = $this->em->getRepository(FeedbackFieldAnswer::class)
-//            ->findOneBy(['feedback' => $feedback, 'responder' => $clientUser]);
+        $expectedToken = substr(md5($clientUser->getUuid()), 0, 6);
+
+        if ($token !== $expectedToken) {
+            throw $this->createAccessDeniedException('Неверный токен доступа');
+        }
+
+//        $existingAnswer = $this->em->createQueryBuilder()
+//            ->select('a')
+//            ->from(FeedbackFieldAnswer::class, 'a')
+//            ->join('a.field', 'f')
+//            ->where('f.feedback = :feedback')
+//            ->andWhere('a.responder = :responder')
+//            ->setParameter('feedback', $feedback)
+//            ->setParameter('responder', $clientUser)
+//            ->setMaxResults(1)
+//            ->getQuery()
+//            ->getOneOrNullResult();
 //
 //        if ($existingAnswer !== null) {
 //            throw $this->createAccessDeniedException('Вы уже проходили этот опрос');
 //        }
 
-        // Добавить проверку, что пользователь должен проходит опросник
-
         $formBuilder = $this->createFormBuilder();
-        $feedbackFieldRep = $this->em->getRepository(FeedbackField::class);
-        $feedbackField = $feedbackFieldRep->find(1);
-        $feedback->addField($feedbackField);
 
         foreach ($feedback->getFields() as $field) {
             $fieldName = 'field_' . $field->getId();
@@ -82,7 +85,7 @@ class FeedbackController extends AbstractController
                         'required' => true,
                         'choices' => array_combine(
                             array_map(fn($opt) => $opt->getLabel(), $field->getOptions()->toArray()),
-                            array_map(fn($opt) => $opt->getId(), $field->getOptions()->toArray())
+                            array_map(fn($opt) => $opt->getValue(), $field->getOptions()->toArray())
                         ),
                         'placeholder' => 'Выберите вариант',
                     ]);
@@ -131,14 +134,14 @@ class FeedbackController extends AbstractController
                     break;
             }
         }
-
+        
         $form = $formBuilder->getForm();
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
 
-            // Здесь сохраняем ответы
+//            dd($data);
             foreach ($data as $fieldName => $answer) {
                 $fieldId = (int) str_replace('field_', '', $fieldName);
                 $field = $feedback->getFields()->filter(fn($f) => $f->getId() === $fieldId)->first();

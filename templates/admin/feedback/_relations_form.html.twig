@@ -1,6 +1,6 @@
-<form id="relationsForm" method="post" action="{{ path('admin_feedback_manage_relations', {'id': feedback.id}) }}">
+<form id="relationsForm" method="post" action="{{ path('admin_feedback_relations', {'id': feedback.id}) }}">
     <div class="modal-header">
-        <h5 class="modal-title" id="relationsModalLabel">Назначение связей для отзыва {{ feedback.name }}</h5>
+        <h5 class="modal-title" id="relationsModalLabel">Назначение связей для опроса {{ feedback.name }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
     </div>
     <div class="modal-body">

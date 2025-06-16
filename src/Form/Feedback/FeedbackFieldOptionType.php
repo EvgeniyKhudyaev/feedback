@@ -15,7 +15,10 @@ class FeedbackFieldOptionType extends AbstractType
         $builder
             ->add('label', TextType::class, [
                 'label' => 'Вариант',
-                'attr' => ['class' => 'form-control'],
+                'attr' => [
+                    'class' => 'form-control',
+                    'style' => 'max-width: 233px;'
+                ],
             ]);
     }
 

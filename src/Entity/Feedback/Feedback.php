@@ -62,13 +62,13 @@ class Feedback
      * @var Collection<int, FeedbackManager>
      */
     #[ORM\OneToMany(targetEntity: FeedbackManager::class, mappedBy: 'feedback')]
-    private Collection $feedbackEditors;
+    private Collection $editors;
 
     /**
      * @var Collection<int, FeedbackTarget>
      */
     #[ORM\OneToMany(targetEntity: FeedbackTarget::class, mappedBy: 'feedback')]
-    private Collection $feedbackTargets;
+    private Collection $targets;
 
     /**
      * @var Collection<int, MessageLog>
@@ -81,8 +81,8 @@ class Feedback
         $this->type = FeedbackTypeEnum::SURVEY;
         $this->status = StatusEnum::ACTIVE;
         $this->fields = new ArrayCollection();
-        $this->feedbackEditors = new ArrayCollection();
-        $this->feedbackTargets = new ArrayCollection();
+        $this->editors = new ArrayCollection();
+        $this->targets = new ArrayCollection();
         $this->messageLogs = new ArrayCollection();
     }
 
@@ -208,29 +208,29 @@ class Feedback
     /**
      * @return Collection<int, FeedbackManager>
      */
-    public function getFeedbackEditors(): Collection
+    public function getEditors(): Collection
     {
-        return $this->feedbackEditors;
+        return $this->editors;
     }
 
-    public function getActiveFeedbackEditors(): Collection
+    public function getActiveEditors(): Collection
     {
-        return $this->feedbackEditors->filter(fn(FeedbackManager $editor) => $editor->getIsActive());
+        return $this->editors->filter(fn(FeedbackManager $editor) => $editor->getIsActive());
     }
 
-    public function addFeedbackEditor(FeedbackManager $feedbackEditor): static
+    public function addEditor(FeedbackManager $feedbackEditor): static
     {
-        if (!$this->feedbackEditors->contains($feedbackEditor)) {
-            $this->feedbackEditors->add($feedbackEditor);
+        if (!$this->editors->contains($feedbackEditor)) {
+            $this->editors->add($feedbackEditor);
             $feedbackEditor->setFeedback($this);
         }
 
         return $this;
     }
 
-    public function removeFeedbackEditor(FeedbackManager $feedbackEditor): static
+    public function removeEditor(FeedbackManager $feedbackEditor): static
     {
-        if ($this->feedbackEditors->removeElement($feedbackEditor)) {
+        if ($this->editors->removeElement($feedbackEditor)) {
             // set the owning side to null (unless already changed)
             if ($feedbackEditor->getFeedback() === $this) {
                 $feedbackEditor->setFeedback(null);
@@ -243,24 +243,24 @@ class Feedback
     /**
      * @return Collection<int, FeedbackTarget>
      */
-    public function getFeedbackTargets(): Collection
+    public function getTargets(): Collection
     {
-        return $this->feedbackTargets;
+        return $this->targets;
     }
 
-    public function addFeedbackTarget(FeedbackTarget $feedbackTarget): static
+    public function addTarget(FeedbackTarget $feedbackTarget): static
     {
-        if (!$this->feedbackTargets->contains($feedbackTarget)) {
-            $this->feedbackTargets->add($feedbackTarget);
+        if (!$this->targets->contains($feedbackTarget)) {
+            $this->targets->add($feedbackTarget);
             $feedbackTarget->setFeedback($this);
         }
 
         return $this;
     }
 
-    public function removeFeedbackTarget(FeedbackTarget $feedbackTarget): static
+    public function removeTarget(FeedbackTarget $feedbackTarget): static
     {
-        if ($this->feedbackTargets->removeElement($feedbackTarget)) {
+        if ($this->targets->removeElement($feedbackTarget)) {
             // set the owning side to null (unless already changed)
             if ($feedbackTarget->getFeedback() === $this) {
                 $feedbackTarget->setFeedback(null);
@@ -270,9 +270,14 @@ class Feedback
         return $this;
     }
 
+    public function getActiveTargets(): Collection
+    {
+        return $this->targets->filter(fn(FeedbackTarget $target) => $target->getIsActive());
+    }
+
     public function hasEditor(UserInterface $user): bool
     {
-        return $this->getActiveFeedbackEditors()->exists(
+        return $this->getActiveEditors()->exists(
             fn($key, $fm) => $fm->getEditor() === $user
         );
     }

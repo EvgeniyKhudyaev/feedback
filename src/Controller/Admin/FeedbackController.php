@@ -16,6 +16,7 @@ use App\Repository\ServiceRepository;
 use App\Repository\UserRepository;
 use App\Service\Feedback\FeedbackEditorManager;
 use App\Service\Feedback\FeedbackService;
+use App\Service\Feedback\FeedbackTargetManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,6 +37,8 @@ class FeedbackController extends AbstractController
         private readonly ServiceRepository $serviceRepository,
         private readonly FeedbackFieldAnswerRepository $feedbackFieldAnswerRepository,
         private readonly FeedbackService               $feedbackService,
+        private readonly FeedbackEditorManager $feedbackEditorManager,
+        private readonly FeedbackTargetManager $feedbackTargetManager,
         private readonly Security $security,
         private readonly EntityManagerInterface $em,
     )
@@ -72,6 +75,7 @@ class FeedbackController extends AbstractController
         }
 
         $timesCompleted = $this->feedbackFieldAnswerRepository->countUniqueClientsForFeedback($feedback->getId());
+        $targetServices = $this->serviceRepository->findTargetServicesByFeedback($feedback);
 
         return $this->render('admin/feedback/view.html.twig', [
             'feedback' => $feedback,
@@ -79,9 +83,11 @@ class FeedbackController extends AbstractController
             'scopes' => FeedbackScopeEnum::getChoices(),
             'statuses' => StatusEnum::getChoices(),
             'timesCompleted' => $timesCompleted,
+            'targetServices' => $targetServices
         ]);
     }
 
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[Route('/create', name: 'admin_feedback_create', methods: ['GET', 'POST'])]
     public function create(Request $request): Response
     {
@@ -114,10 +120,11 @@ class FeedbackController extends AbstractController
         ]);
     }
 
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[Route('/{id}/edit', name: 'admin_feedback_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Feedback $feedback): Response
     {
-        if (!$this->security->isGranted('ROLE_ADMIN') && !$this->security->isGranted('ROLE_MANAGER')) {
+        if (!$this->security->isGranted('ROLE_ADMIN') && !$feedback->hasEditor($this->security->getUser())) {
             throw $this->createAccessDeniedException();
         }
 
@@ -127,7 +134,7 @@ class FeedbackController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 $feedback->normalizeFieldsSortOrder();
-                $this->em->persist($feedback); // persist необязателен для уже существующего объекта, но можно оставить
+                $this->em->persist($feedback);
                 $this->em->flush();
 
                 $this->addFlash('success', 'Опрос успешно обновлён.');
@@ -146,9 +153,13 @@ class FeedbackController extends AbstractController
     }
 
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    #[Route('/{id}/editors', name: 'admin_feedback_manage_editors', methods: ['GET'])]
-    public function manageEditorsForm(Feedback $feedback): Response
+    #[Route('/{id}/editors', name: 'admin_feedback_manager_editors', methods: ['GET'])]
+    public function getManagerEditorsForm(Feedback $feedback): Response
     {
+        if (!$this->security->isGranted('ROLE_ADMIN') && !$feedback->hasEditor($this->security->getUser())) {
+            throw $this->createAccessDeniedException();
+        }
+
         $managers = $this->userRepository->findByRole(UserRoleEnum::MANAGER);
 
         return $this->render('admin/feedback/_manage_editors_modal.html.twig', [
@@ -158,16 +169,19 @@ class FeedbackController extends AbstractController
     }
 
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    #[Route('/{id}/editors', name: 'admin_feedback_manage_editor', methods: ['POST'])]
-    public function manageEditorsSave(
+    #[Route('/{id}/editors', name: 'admin_feedback_manager_editor', methods: ['POST'])]
+    public function managerEditorsSave(
         Feedback               $feedback,
-        Request                $request,
-        FeedbackEditorManager  $editorManager,
+        Request $request
     ): Response
     {
         try {
-            $selectedUserIds = $request->request->all('managers');
-            $editorManager->updateEditors($feedback, $selectedUserIds);
+            if (!$this->security->isGranted('ROLE_ADMIN') && !$feedback->hasEditor($this->security->getUser())) {
+                throw $this->createAccessDeniedException();
+            }
+
+            $userIds = $request->request->all('managers');
+            $this->feedbackEditorManager->updateEditors($feedback, $userIds);
             $this->em->flush();
 
             return new JsonResponse([
@@ -175,7 +189,7 @@ class FeedbackController extends AbstractController
                 'editors' => array_map(fn($editor) => [
                     'id' => $editor->getId(),
                     'name' => $editor->getEditor()->getName(),
-                ], $feedback->getActiveFeedbackEditors()->toArray()),
+                ], $feedback->getActiveEditors()->toArray()),
             ]);
         } catch (\Throwable $e) {
             $this->logger->error('Ошибка сохранения менеджеров: ' . $e->getMessage(), ['exception' => $e]);
@@ -189,12 +203,14 @@ class FeedbackController extends AbstractController
     }
 
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    #[Route('/{id}/relations', name: 'admin_feedback_relations', requirements: ['id' => '\d+'])]
+    #[Route('/{id}/relations', name: 'admin_feedback_relations', methods: ['GET'])]
     public function getRelationsForm(Feedback $feedback): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN'); // или другая логика доступа
+        if (!$this->security->isGranted('ROLE_ADMIN') && !$feedback->hasEditor($this->security->getUser())) {
+            throw $this->createAccessDeniedException();
+        }
 
-        $services = $this->serviceRepository->findAll(); // загрузить сервисы
+        $services = $this->serviceRepository->findAll();
 
         return $this->render('admin/feedback/_relations_form.html.twig', [
             'feedback' => $feedback,
@@ -203,29 +219,36 @@ class FeedbackController extends AbstractController
     }
 
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    #[Route('/{id}/manage-relations', name: 'admin_feedback_manage_relations', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function manageRelations(Request $request, Feedback $feedback): JsonResponse
+    #[Route('/{id}/relations', name: 'admin_feedback_relation', methods: ['POST'])]
+    public function relationsSave(
+        Feedback $feedback,
+        Request  $request,
+    ): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        try {
+            if (!$this->security->isGranted('ROLE_ADMIN') && !$feedback->hasEditor($this->security->getUser())) {
+                throw $this->createAccessDeniedException();
+            }
 
-        $relationsIds = $request->request->get('relations', []);
+            $relationsIds = $request->request->all('relations');
+            $this->feedbackTargetManager->updateTargets($feedback, $relationsIds);
+            $this->em->flush();
 
-        // логика сохранения связей (например, $feedback->setFieldsByIds($relationsIds))
+            return new JsonResponse([
+                'success' => true,
+                'relations' => array_map(fn($editor) => [
+                    'id' => $editor->getId(),
+                    'name' => $editor->getEditor()->getName(),
+                ], $feedback->getActiveEditors()->toArray()),
+            ]);
+        } catch (\Throwable $e) {
+            $this->logger->error('Ошибка сохранения связей: ' . $e->getMessage(), ['exception' => $e]);
 
-        $this->em->flush();
-
-        // вернуть актуальные связи для обновления списка на странице
-        $relations = [];
-        foreach ($feedback->getFields() as $field) {
-            $relations[] = [
-                'name' => $field->getLabel(),
-                'value' => $field->get(),
-            ];
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Ошибка при сохранении. Попробуйте позже.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        return $this->json([
-            'success' => true,
-            'relations' => $relations,
-        ]);
     }
 }

@@ -34,7 +34,7 @@ readonly class FeedbackEditorManager
     {
         return array_map(
             fn($editor) => (int)$editor->getEditor()->getId(),
-            $feedback->getActiveFeedbackEditors()->toArray()
+            $feedback->getActiveEditors()->toArray()
         );
     }
 
@@ -81,7 +81,7 @@ readonly class FeedbackEditorManager
 
             $feedbackManager = FeedbackManager::create($user, $feedback);
             $this->em->persist($feedbackManager);
-            $feedback->addFeedbackEditor($feedbackManager);
+            $feedback->addEditor($feedbackManager);
 
         }
     }

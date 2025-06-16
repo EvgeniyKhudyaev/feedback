@@ -28,47 +28,47 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto gap-2">
-                <li class="nav-item">
-                    <a class="nav-link {% if app.request.pathinfo == '/home' %}active fw-semibold text-primary{% endif %}" href="/home">
-                        <i class="bi bi-house-door"></i> Главная
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if app.request.pathinfo == '/admin/users' %}active fw-semibold text-primary{% endif %}" href="{{ path('admin_user_index') }}">
-                        <i class="bi bi-person"></i> Пользователи
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if app.request.pathinfo == '/admin/feedbacks' %}active fw-semibold text-primary{% endif %}" href="{{ path('admin_feedback_index') }}">
-                        <i class="bi bi-ui-checks"></i> Опросы
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if app.request.pathinfo == '/reports' %}active fw-semibold text-primary{% endif %}" href="{{ path('report_index') }}">
-                        <i class="bi-bar-chart"></i> Отчеты
-                    </a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                       data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle"></i> Синхронизация
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href={{ path('sync_client_index') }}><i class="bi bi-person-badge"></i> Клиенты</a></li>
-                        <li><a class="dropdown-item" href={{ path('sync_service_index') }}><i class="bi bi-gear"></i> Услуги</a></li>
-                        <li><a class="dropdown-item" href={{ path('sync_service_type_index') }}><i class="bi bi-tags"></i> Типы услуг</a></li>
-                        <li><a class="dropdown-item" href={{ path('sync_service_state_index') }}><i class="bi bi-hourglass-split"></i> Состояния услуг</a></li>
-                    </ul>
-                </li>
-
                 {% if app.user %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.pathinfo == '/home' %}active fw-semibold text-primary{% endif %}" href="/home">
+                            <i class="bi bi-house-door"></i> Главная
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.pathinfo == '/admin/users' %}active fw-semibold text-primary{% endif %}" href="{{ path('admin_user_index') }}">
+                            <i class="bi bi-person"></i> Пользователи
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.pathinfo == '/admin/feedbacks' %}active fw-semibold text-primary{% endif %}" href="{{ path('admin_feedback_index') }}">
+                            <i class="bi bi-ui-checks"></i> Опросы
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.pathinfo == '/reports' %}active fw-semibold text-primary{% endif %}" href="{{ path('report_index') }}">
+                            <i class="bi-bar-chart"></i> Отчеты
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="syncDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-arrow-repeat"></i> Синхронизация
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ path('sync_client_index') }}"><i class="bi bi-person-badge"></i> Клиенты</a></li>
+                            <li><a class="dropdown-item" href="{{ path('sync_service_index') }}"><i class="bi bi-gear"></i> Услуги</a></li>
+                            <li><a class="dropdown-item" href="{{ path('sync_service_type_index') }}"><i class="bi bi-tags"></i> Типы услуг</a></li>
+                            <li><a class="dropdown-item" href="{{ path('sync_service_state_index') }}"><i class="bi bi-hourglass-split"></i> Состояния услуг</a></li>
+                        </ul>
+                    </li>
+
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                            data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i> {{ app.user.name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href={{ path('profile_edit') }}><i class="bi bi-person"></i> Профиль</a></li>
+                            <li><a class="dropdown-item" href="{{ path('profile_edit') }}"><i class="bi bi-person"></i> Профиль</a></li>
                             <li><a class="dropdown-item" href="{{ path('logout') }}"><i class="bi bi-box-arrow-right"></i> Выйти</a></li>
                         </ul>
                     </li>
@@ -83,6 +83,7 @@
         </div>
     </div>
 </nav>
+
 
 
 <main class="flex-fill">

@@ -1,6 +1,6 @@
-<form id="managersForm" method="post" action="{{ path('admin_feedback_manage_editors', {'id': feedback.id}) }}">
+<form id="managersForm" method="post" action="{{ path('admin_feedback_manager_editors', {'id': feedback.id}) }}">
     <div class="modal-header">
-        <h5 class="modal-title" id="managersModalLabel">Назначение менеджеров для отзыва {{ feedback.name }}</h5>
+        <h5 class="modal-title" id="managersModalLabel">Назначение менеджеров для опроса {{ feedback.name }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
     </div>
     <div class="modal-body">
@@ -8,7 +8,7 @@
         <select id="managers" name="managers[]" class="form-select" multiple size="10">
             {% for manager in managers %}
                 <option value="{{ manager.id }}"
-                        {% for fe in feedback.activeFeedbackEditors %}
+                        {% for fe in feedback.activeEditors %}
                             {% if fe.editor.id == manager.id %}
                                 selected
                             {% endif %}
