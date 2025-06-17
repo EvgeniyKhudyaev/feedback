@@ -4,6 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    telegram_bot_token: '8065305329:AAF9NUUwrPYlL0XrQxnY_pz62IcKJRLl2fM'
 
 services:
     # default configuration for services in *this* file
@@ -30,3 +31,9 @@ services:
             - { name: doctrine.event_listener, event: prePersist }
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Command\SendSurveyCommand:
+        arguments:
+            $botToken: '%telegram_bot_token%'
+        tags:
+            - { name: 'console.command' }
